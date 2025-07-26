@@ -48,7 +48,7 @@ export async function generateMetadata({ params }) {
       title: t.site.title,
       description: t.site.description,
       images: ["https://nasa-gistemp-viewer.vercel.app/screenshots/ClimateGlobe.png"],
-      creator: "@johanlorck",
+      creator: "@globalclimat",
     },
     robots: {
       index: true,
@@ -85,7 +85,7 @@ export default async function LocaleLayout({ children, params }) {
     creator: {
       '@type': 'Person',
       name: 'Johan Lorck',
-      url: 'https://github.com/johanlorck'
+      url: 'https://github.com/JohanL-78'
     },
     keywords: t.site.keywords,
     inLanguage: locale,
