@@ -20,8 +20,9 @@ export async function generateMetadata({ params }) {
     alternates: {
       canonical: `https://nasa-gistemp-viewer.vercel.app/${locale}`,
       languages: {
-        'fr': 'https://nasa-gistemp-viewer.vercel.app/fr',
-        'en': 'https://nasa-gistemp-viewer.vercel.app/en',
+        'fr-FR': 'https://nasa-gistemp-viewer.vercel.app/fr',
+        'en-US': 'https://nasa-gistemp-viewer.vercel.app/en',
+        'x-default': 'https://nasa-gistemp-viewer.vercel.app/fr',
       },
     },
     openGraph: {
