@@ -1,0 +1,407 @@
+🚀 GUIDE COMPLET : MDX + Next.js 15 App Router avec Images et Graphiques
+===============================================================================
+
+Ce guide explique comment configurer MDX dans Next.js 15 App Router pour créer
+des articles complètement customisables avec composants React, images optimisées
+et graphiques interactifs.
+
+📦 ÉTAPE 1 : INSTALLATION DES DÉPENDANCES
+=========================================
+
+npm install @next/mdx @mdx-js/loader @mdx-js/react @types/mdx
+npm install next-mdx-remote  # Pour MDX dans les strings
+npm install recharts         # Pour les graphiques
+npm install @tailwindcss/typography  # Pour le style markdown
+
+⚙️ ÉTAPE 2 : CONFIGURATION NEXT.JS
+==================================
+
+1. Modifier next.config.mjs :
+
+```javascript
+import createMDX from '@next/mdx'
+
+const nextConfig = {
+  pageExtensions: ['js', 'jsx', 'mdx', 'ts', 'tsx'],
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'picsum.photos',
+      },
+      {
+        protocol: 'https',
+        hostname: 'unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+    ],
+  },
+}
+
+const withMDX = createMDX({
+  extension: /\.mdx?$/,
+})
+
+export default withMDX(nextConfig)
+```
+
+2. Créer mdx-components.js à la racine :
+
+```javascript
+import SimpleAlert from './app/components/SimpleAlert'
+import Chart from './app/components/Chart'
+import MDXImage, { ImageGallery } from './app/components/MDXImage'
+
+export function useMDXComponents(components) {
+  return {
+    ...components,
+    SimpleAlert,
+    Chart,
+    MDXImage,
+    ImageGallery,
+  }
+}
+```
+
+🎨 ÉTAPE 3 : CONFIGURATION TAILWIND
+===================================
+
+1. Ajouter le plugin typography dans globals.css :
+
+```css
+@import "tailwindcss";
+@plugin "@tailwindcss/typography";
+```
+
+2. Utiliser les classes prose dans vos composants :
+
+```jsx
+<div className="prose prose-lg max-w-none">
+  {/* Contenu MDX */}
+</div>
+```
+
+🧩 ÉTAPE 4 : CRÉER LES COMPOSANTS RÉUTILISABLES
+===============================================
+
+1. Composant SimpleAlert (app/components/SimpleAlert.js) :
+
+```javascript
+export default function SimpleAlert({ type = 'info', children }) {
+  const styles = {
+    info: 'bg-blue-50 border-blue-200 text-blue-800',
+    warning: 'bg-yellow-50 border-yellow-200 text-yellow-800',
+    error: 'bg-red-50 border-red-200 text-red-800',
+    success: 'bg-green-50 border-green-200 text-green-800'
+  }
+
+  return (
+    <div className={`p-4 border-l-4 rounded-r-lg ${styles[type]} my-4`}>
+      {children}
+    </div>
+  )
+}
+```
+
+2. Composant Chart (app/components/Chart.js) :
+
+```javascript
+'use client'
+
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts'
+
+const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D']
+
+export default function Chart({ type, data, xKey, yKey, nameKey, valueKey, title }) {
+  switch (type) {
+    case 'line':
+      return (
+        <div className="w-full h-96 my-8">
+          <h3 className="text-xl font-semibold mb-4 text-center">{title}</h3>
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={data}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey={xKey} />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Line type="monotone" dataKey={yKey} stroke="#8884d8" strokeWidth={2} />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      )
+    // Ajouter bar et pie de la même façon...
+  }
+}
+```
+
+3. Composant MDXImage (app/components/MDXImage.js) :
+
+```javascript
+import Image from 'next/image'
+
+export default function MDXImage({ src, alt, width = 600, height = 400, caption, className = "" }) {
+  return (
+    <figure className={`my-8 ${className}`}>
+      <div className="relative w-full rounded-lg overflow-hidden shadow-md">
+        <Image
+          src={src}
+          alt={alt}
+          width={width}
+          height={height}
+          className="w-full h-auto object-cover"
+          style={{ maxWidth: '100%', height: 'auto' }}
+        />
+      </div>
+      {caption && (
+        <figcaption className="text-center text-gray-600 text-sm mt-2 italic">
+          {caption}
+        </figcaption>
+      )}
+    </figure>
+  )
+}
+```
+
+📁 ÉTAPE 5 : STRUCTURE DE FICHIERS
+==================================
+
+Structure recommandée :
+
+```
+project/
+├── app/
+│   ├── components/
+│   │   ├── SimpleAlert.js
+│   │   ├── Chart.js
+│   │   └── MDXImage.js
+│   ├── blogs/               # Pour fichiers .mdx natifs
+│   │   ├── [slug]/
+│   │   │   └── page.js
+│   │   ├── mon-article.mdx
+│   │   └── autre-article.mdx
+│   ├── posts/               # Pour posts en JSON avec MDX
+│   │   └── [slug]/
+│   │       └── page.js
+│   ├── data/
+│   │   └── posts.js         # Posts avec content MDX
+│   └── globals.css
+├── public/
+│   └── images/              # Images locales
+├── mdx-components.js        # Configuration MDX globale
+└── next.config.mjs
+```
+
+✍️ ÉTAPE 6 : DEUX APPROCHES POUR LES ARTICLES
+=============================================
+
+APPROCHE 1 : Fichiers .mdx natifs (app/blogs/)
+-----------------------------------------------
+
+Créer app/blogs/mon-article.mdx :
+
+```mdx
+export const metadata = {
+  title: 'Mon Article',
+  description: 'Description de mon article',
+  date: '2024-01-20',
+  tags: ['Next.js', 'MDX'],
+}
+
+# Mon Article
+
+Contenu avec composants React !
+
+<SimpleAlert type="info">
+  **Info** : Ceci est un composant React !
+</SimpleAlert>
+
+<Chart
+  type="line"
+  title="Mes données"
+  data={[
+    { mois: 'Jan', ventes: 4000 },
+    { mois: 'Fév', ventes: 3000 }
+  ]}
+  xKey="mois"
+  yKey="ventes"
+/>
+
+<MDXImage
+  src="/images/mon-image.jpg"
+  alt="Ma description"
+  caption="Ma légende"
+/>
+```
+
+Page correspondante app/blogs/[slug]/page.js :
+
+```javascript
+export default async function BlogPage({ params }) {
+  const { slug } = await params
+  const post = await import(`../${slug}.mdx`)
+
+  const MDXContent = post.default
+  const metadata = post.metadata
+
+  return (
+    <article className="max-w-4xl mx-auto px-4 py-8">
+      <header className="mb-8">
+        <h1 className="text-4xl font-bold">{metadata.title}</h1>
+        <p className="text-xl text-gray-600">{metadata.description}</p>
+      </header>
+
+      <div className="prose prose-lg max-w-none">
+        <MDXContent />
+      </div>
+    </article>
+  )
+}
+
+export function generateStaticParams() {
+  return [{ slug: 'mon-article' }]  // Ajouter tous vos slugs
+}
+```
+
+APPROCHE 2 : Posts en JSON avec MDX (app/data/posts.js)
+-------------------------------------------------------
+
+```javascript
+export const posts = [
+  {
+    id: '1',
+    title: 'Mon Article',
+    slug: 'mon-article',
+    excerpt: 'Description courte',
+    content: `# Mon Article
+
+<SimpleAlert type="info">
+  **Info** : Contenu MDX dans une string !
+</SimpleAlert>
+
+<Chart
+  type="bar"
+  data={[{ categorie: 'A', valeur: 100 }]}
+  xKey="categorie"
+  yKey="valeur"
+/>`,
+    date: '2024-01-20',
+    author: 'Auteur',
+    isMDX: true  // Important !
+  }
+]
+```
+
+Page correspondante app/posts/[slug]/page.js :
+
+```javascript
+import { MDXRemote } from 'next-mdx-remote/rsc'
+import SimpleAlert from '../../components/SimpleAlert'
+import Chart from '../../components/Chart'
+import MDXImage from '../../components/MDXImage'
+
+export default async function PostPage({ params }) {
+  const { slug } = await params
+  const post = getPostBySlug(slug)
+
+  return (
+    <article className="max-w-4xl mx-auto px-4 py-8">
+      <div className="prose prose-lg max-w-none">
+        {post.isMDX ? (
+          <MDXRemote
+            source={post.content}
+            components={{
+              SimpleAlert,
+              Chart,
+              MDXImage,
+            }}
+          />
+        ) : (
+          <ReactMarkdown>{post.content}</ReactMarkdown>
+        )}
+      </div>
+    </article>
+  )
+}
+```
+
+🎯 ÉTAPE 7 : UTILISATION DANS VOS ARTICLES
+==========================================
+
+Composants disponibles dans vos .mdx :
+
+1. Alertes :
+```mdx
+<SimpleAlert type="info|warning|error|success">
+  Votre message
+</SimpleAlert>
+```
+
+2. Graphiques :
+```mdx
+<Chart
+  type="line|bar|pie"
+  title="Titre du graphique"
+  data={[{x: 1, y: 100}]}
+  xKey="x"
+  yKey="y"
+/>
+```
+
+3. Images :
+```mdx
+<MDXImage
+  src="/images/photo.jpg"
+  alt="Description"
+  width={600}
+  height={400}
+  caption="Légende optionnelle"
+/>
+```
+
+4. Galerie d'images :
+```mdx
+<ImageGallery
+  columns={2}
+  images={[
+    { src: "/img1.jpg", alt: "Image 1", caption: "Légende 1" },
+    { src: "/img2.jpg", alt: "Image 2", caption: "Légende 2" }
+  ]}
+/>
+```
+
+💡 CONSEILS ET BONNES PRATIQUES
+===============================
+
+1. **Images** : Toujours spécifier width et height pour éviter le layout shift
+2. **Performance** : Les graphiques sont rendus côté client ('use client')
+3. **SEO** : Ne pas oublier l'attribut alt pour les images
+4. **Sécurité** : Configurer les domaines d'images dans next.config.mjs
+5. **Style** : Utiliser les classes prose de Tailwind Typography
+6. **Maintenance** : Préférer les fichiers .mdx pour les articles longs
+
+🔧 DÉPANNAGE COURANT
+====================
+
+- **Images externes** : Ajouter le domaine dans next.config.mjs
+- **Composants non reconnus** : Vérifier mdx-components.js
+- **Erreur createContext** : Ajouter 'use client' aux composants interactifs
+- **Styles non appliqués** : Vérifier @plugin dans globals.css
+
+🎉 RÉSULTAT FINAL
+=================
+
+Vous avez maintenant un système MDX complet permettant de créer des articles
+riches avec :
+- ✅ Composants React interactifs
+- ✅ Graphiques dynamiques (line, bar, pie)
+- ✅ Images optimisées avec légendes
+- ✅ Alertes stylisées
+- ✅ Typography professionnelle
+- ✅ Support des fichiers .mdx et strings MDX
+
+Parfait pour des blogs techniques, de la documentation ou des présentations
+de données !

@@ -1,19 +1,27 @@
-import PageContent from '@/components/PageContent';
-import { getAvailableDates, getNasaTableData } from '@/lib/data';
+import LandingPage from '@/components/LandingPage';
+import JsonLd from '@/components/JsonLd';
+import { getAvailableDates } from '@/lib/data';
+import { normalizeLocale } from '@/lib/i18n';
+import { getPageMetadata } from '@/lib/seo';
+
+export async function generateMetadata({ params }) {
+  const { locale } = await params;
+  return getPageMetadata(normalizeLocale(locale), '/');
+}
 
 export default async function HomePage({ params }) {
-  const resolvedParams = await params;
-  const availableDates = await getAvailableDates();
-  const tableData = await getNasaTableData();
-
-  console.log("Vérification des données sur le SERVEUR (3 premières lignes) :");
-  console.log(tableData.slice(0, 3));
+  const { locale } = await params;
+  const normalizedLocale = normalizeLocale(locale);
+  const availableDates = await getAvailableDates('global', normalizedLocale);
 
   return (
-    <PageContent 
-      availableDates={availableDates} 
-      tableData={tableData}
-      locale={resolvedParams.locale}
-    />
+    <>
+      <JsonLd locale={normalizedLocale} path="/" />
+      <LandingPage
+        locale={normalizedLocale}
+        year={availableDates.current_year}
+        month={availableDates.current_month}
+      />
+    </>
   );
 }

@@ -1,7 +1,9 @@
+import { SITE_URL } from '@/lib/seo';
+
 export function GET() {
   const body = `User-agent: *
 Allow: /
-Sitemap: https://nasa-gistemp-viewer.vercel.app/sitemap.xml`;
+Sitemap: ${SITE_URL}/sitemap.xml`;
 
   return new Response(body, {
     headers: {

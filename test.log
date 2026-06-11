@@ -1,0 +1,38 @@
+
+> climate-sphere-next@0.1.0 dev
+> next dev
+
+   ▲ Next.js 15.3.3
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.1.11:3000
+
+ ✓ Starting...
+ ✓ Ready in 872ms
+ ○ Compiling / ...
+ ✓ Compiled / in 5s (3399 modules)
+✅ Cache valide (global) (âge: 1378 min)
+✅ Cache valide (global) (âge: 1378 min)
+Vérification des données sur le SERVEUR (3 premières lignes) :
+[
+  [ 'Land-Ocean: Global Means' ],
+  [
+    'Year', 'Jan', 'Feb',
+    'Mar',  'Apr', 'May',
+    'Jun',  'Jul', 'Aug',
+    'Sep',  'Oct', 'Nov',
+    'Dec',  'J-D', 'D-N',
+    'DJF',  'MAM', 'JJA',
+    'SON'
+  ],
+  [
+    '1880', '-.18', '-.24',
+    '-.09', '-.16', '-.10',
+    '-.21', '-.18', '-.10',
+    '-.14', '-.23', '-.22',
+    '-.17', '-.17', '',
+    '',     '-.12', '-.16',
+    '-.20'
+  ]
+]
+ GET / 200 in 5228ms
+[?25h

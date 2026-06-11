@@ -5,19 +5,14 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, TrendingUp, Calendar, BarChart3, Download, Settings } from 'lucide-react';
 import html2canvas from 'html2canvas';
+import { useIsMobile } from '@/hooks/useResponsive';
+import { fullMonthNames, getTranslations } from '@/lib/i18n';
+import { SITE_NAME, SITE_URL } from '@/lib/seo';
 
-function useIsMobile() {
-  const [isMobile, setIsMobile] = useState(false);
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768);
-    check();
-    window.addEventListener('resize', check);
-    return () => window.removeEventListener('resize', check);
-  }, []);
-  return isMobile;
-}
 
-const CustomTooltip = ({ active, payload, label }) => {
+const CustomTooltip = ({ active, payload, label, locale = 'en' }) => {
+  const t = getTranslations(locale);
+
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
@@ -25,18 +20,18 @@ const CustomTooltip = ({ active, payload, label }) => {
         initial={{ opacity: 0, scale: 0.8 }}
         animate={{ opacity: 1, scale: 1 }}
         style={{
-          background: 'rgba(0, 0, 0, 0.9)',
+          background: 'rgba(8, 12, 13, 0.92)',
           backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
-          borderRadius: '12px',
+          border: '1px solid var(--border-strong)',
+          borderRadius: '8px',
           padding: '12px 16px',
-          color: '#fff',
+          color: 'var(--foreground)',
           fontSize: '13px',
           boxShadow: '0 8px 25px rgba(0, 0, 0, 0.4)'
         }}
       >
-        <div style={{ fontWeight: '600', marginBottom: '4px', color: '#64b5f6' }}>
-          {label} {data.isCurrentYear && <span style={{ color: '#ffc107', fontSize: '11px' }}>(Année courante)</span>}
+        <div style={{ fontWeight: '600', marginBottom: '4px', color: 'var(--accent)' }}>
+          {label} {data.isCurrentYear && <span style={{ color: '#D4A95F', fontSize: '11px' }}>({t.chart.currentYear})</span>}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div style={{
@@ -44,27 +39,27 @@ const CustomTooltip = ({ active, payload, label }) => {
             height: '8px',
             borderRadius: '50%',
             background: payload[0].color,
-            border: data.isCurrentYear ? '2px solid #ffc107' : 'none'
+            border: data.isCurrentYear ? '2px solid #D4A95F' : 'none'
           }} />
           <span>{payload[0].value !== null ? `${payload[0].value.toFixed(2)}°C` : 'N/A'}</span>
         </div>
         {data.isCurrentYear && (
           <div style={{ 
             fontSize: '11px', 
-            color: '#ffc107', 
+            color: '#D4A95F', 
             marginTop: '4px',
             fontStyle: 'italic'
           }}>
             {data.isCalculated 
-              ? `Moyenne calculée sur ${data.monthsUsed} mois disponibles`
-              : 'Données annuelles provisoires (année en cours)'
+              ? `${t.chart.calculatedAverage} ${data.monthsUsed} ${t.chart.availableMonths}`
+              : t.chart.provisionalAnnual
             }
           </div>
         )}
         {data.notable && (
           <div style={{ 
             fontSize: '11px', 
-            color: '#ffc107', 
+            color: '#D4A95F', 
             marginTop: '4px',
             fontStyle: 'italic'
           }}>
@@ -77,34 +72,20 @@ const CustomTooltip = ({ active, payload, label }) => {
   return null;
 };
 
-const ChartControls = ({ month, onMonthChange, reference, onReferenceChange, source, onSourceChange, viewType, onViewTypeChange, onExport, translations }) => {
+const ChartControls = ({ month, onMonthChange, reference, onReferenceChange, source, onSourceChange, viewType, onViewTypeChange, onExport, locale = 'en' }) => {
   const isMobile = useIsMobile();
-
-  const months = [
-    { value: 1, name: translations?.monthNames?.[1] || 'January' }, 
-    { value: 2, name: translations?.monthNames?.[2] || 'February' }, 
-    { value: 3, name: translations?.monthNames?.[3] || 'March' },
-    { value: 4, name: translations?.monthNames?.[4] || 'April' }, 
-    { value: 5, name: translations?.monthNames?.[5] || 'May' }, 
-    { value: 6, name: translations?.monthNames?.[6] || 'June' },
-    { value: 7, name: translations?.monthNames?.[7] || 'July' }, 
-    { value: 8, name: translations?.monthNames?.[8] || 'August' }, 
-    { value: 9, name: translations?.monthNames?.[9] || 'September' },
-    { value: 10, name: translations?.monthNames?.[10] || 'October' }, 
-    { value: 11, name: translations?.monthNames?.[11] || 'November' }, 
-    { value: 12, name: translations?.monthNames?.[12] || 'December' }
-  ];
+  const t = getTranslations(locale);
 
   const references = [
-    { value: 'nasa', name: translations?.referenceNasa || '1951-1980 (NASA)' },
-    { value: 'preindustrial', name: translations?.referencePreindustrial || '1880-1899 (Pre-industrial)' },
-    { value: 'modern', name: translations?.referenceModern || '1991-2020 (Modern)' }
+    { value: 'nasa', name: '1951-1980 (NASA)' },
+    { value: 'preindustrial', name: t.table.preindustrial },
+    { value: 'modern', name: t.table.modern }
   ];
 
   const sources = [
-    { value: 'global', name: translations?.global || 'Global' },
-    { value: 'north', name: translations?.north || 'Northern Hemisphere' },
-    { value: 'south', name: translations?.south || 'Southern Hemisphere' }
+    { value: 'global', name: 'Global' },
+    { value: 'north', name: t.table.northernHemisphere },
+    { value: 'south', name: t.table.southernHemisphere }
   ];
 
   return (
@@ -114,72 +95,70 @@ const ChartControls = ({ month, onMonthChange, reference, onReferenceChange, sou
       gap: isMobile ? '8px' : '16px',
       marginBottom: '20px',
       padding: '16px',
-      background: 'rgba(255, 255, 255, 0.05)',
-      borderRadius: '12px',
-      border: '1px solid rgba(255, 255, 255, 0.1)'
+      background: 'rgba(246, 241, 232, 0.035)',
+      borderRadius: '8px',
+      border: '1px solid var(--border)'
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <Calendar size={16} color="#64b5f6" />
+        <Calendar size={16} color="var(--accent)" />
         <select
           value={viewType}
           onChange={(e) => onViewTypeChange(e.target.value)}
           style={{
-            background: 'rgba(255, 255, 255, 0.1)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
+            background: 'rgba(246, 241, 232, 0.06)',
+            border: '1px solid rgba(246, 241, 232, 0.18)',
             borderRadius: '8px',
             padding: '6px 12px',
-            color: '#fff',
+            color: 'var(--foreground)',
             fontSize: '13px',
             outline: 'none'
           }}
         >
-          <option value="monthly" style={{ background: '#1a1a2e', color: '#fff' }}>{translations?.monthly || 'Monthly'}</option>
-          <option value="annual" style={{ background: '#1a1a2e', color: '#fff' }}>{translations?.annual || 'Annual'}</option>
+          <option value="monthly" style={{ background: 'var(--surface)', color: 'var(--foreground)' }}>{t.chart.monthly}</option>
+          <option value="annual" style={{ background: 'var(--surface)', color: 'var(--foreground)' }}>{t.chart.annual}</option>
         </select>
       </div>
 
       {viewType === 'monthly' && (
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Calendar size={16} color="#64b5f6" />
-          <select
-            value={month}
-            onChange={(e) => onMonthChange(parseInt(e.target.value))}
+          <Calendar size={16} color="var(--accent)" />
+          <input
+            type="month"
+            value={`${new Date().getFullYear()}-${month.toString().padStart(2, '0')}`}
+            onChange={(e) => {
+              const [, monthValue] = e.target.value.split('-');
+              onMonthChange(parseInt(monthValue));
+            }}
             style={{
-              background: 'rgba(255, 255, 255, 0.1)',
-              border: '1px solid rgba(255, 255, 255, 0.2)',
+              background: 'rgba(246, 241, 232, 0.06)',
+              border: '1px solid rgba(246, 241, 232, 0.18)',
               borderRadius: '8px',
               padding: '6px 12px',
-              color: '#fff',
+              color: 'var(--foreground)',
               fontSize: '13px',
               outline: 'none'
             }}
-          >
-            {months.map(m => (
-              <option key={m.value} value={m.value} style={{ background: '#1a1a2e', color: '#fff' }}>
-                {m.name}
-              </option>
-            ))}
-          </select>
+          />
         </div>
       )}
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <TrendingUp size={16} color="#ff6b6b" />
+        <TrendingUp size={16} color="var(--accent-soft)" />
         <select
           value={source}
           onChange={(e) => onSourceChange(e.target.value)}
           style={{
-            background: 'rgba(255, 255, 255, 0.1)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
+            background: 'rgba(246, 241, 232, 0.06)',
+            border: '1px solid rgba(246, 241, 232, 0.18)',
             borderRadius: '8px',
             padding: '6px 12px',
-            color: '#fff',
+            color: 'var(--foreground)',
             fontSize: '13px',
             outline: 'none'
           }}
         >
           {sources.map(s => (
-            <option key={s.value} value={s.value} style={{ background: '#1a1a2e', color: '#fff' }}>
+            <option key={s.value} value={s.value} style={{ background: 'var(--surface)', color: 'var(--foreground)' }}>
               {s.name}
             </option>
           ))}
@@ -187,22 +166,22 @@ const ChartControls = ({ month, onMonthChange, reference, onReferenceChange, sou
       </div>
 
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <Settings size={16} color="#00ff88" />
+        <Settings size={16} color="var(--accent)" />
         <select
           value={reference}
           onChange={(e) => onReferenceChange(e.target.value)}
           style={{
-            background: 'rgba(255, 255, 255, 0.1)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
+            background: 'rgba(246, 241, 232, 0.06)',
+            border: '1px solid rgba(246, 241, 232, 0.18)',
             borderRadius: '8px',
             padding: '6px 12px',
-            color: '#fff',
+            color: 'var(--foreground)',
             fontSize: '13px',
             outline: 'none'
           }}
         >
           {references.map(r => (
-            <option key={r.value} value={r.value} style={{ background: '#1a1a2e', color: '#fff' }}>
+            <option key={r.value} value={r.value} style={{ background: 'var(--surface)', color: 'var(--foreground)' }}>
               {r.name}
             </option>
           ))}
@@ -214,11 +193,11 @@ const ChartControls = ({ month, onMonthChange, reference, onReferenceChange, sou
         whileTap={{ scale: 0.95 }}
         onClick={onExport}
         style={{
-          background: 'linear-gradient(135deg, #64b5f6, #42a5f5)',
+          background: 'linear-gradient(135deg, var(--accent), var(--accent-soft))',
           border: 'none',
           borderRadius: '8px',
           padding: '6px 12px',
-          color: '#fff',
+          color: 'var(--foreground)',
           fontSize: '13px',
           cursor: 'pointer',
           display: 'flex',
@@ -228,31 +207,33 @@ const ChartControls = ({ month, onMonthChange, reference, onReferenceChange, sou
         }}
       >
         <Download size={14} />
-        {translations?.export || 'Export'}
+        {t.chart.export}
       </motion.button>
     </div>
   );
 };
 
-// Composant tooltip avec traductions passées en props
-const SimpleTooltip = ({ active, payload, label, currentYearText }) => {
+// Composant tooltip
+const SimpleTooltip = ({ active, payload, label, locale = 'en' }) => {
+  const t = getTranslations(locale);
+
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
       <div
         style={{
-          background: 'rgba(0, 0, 0, 0.9)',
+          background: 'rgba(8, 12, 13, 0.92)',
           backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255, 255, 255, 0.2)',
-          borderRadius: '12px',
+          border: '1px solid var(--border-strong)',
+          borderRadius: '8px',
           padding: '12px 16px',
-          color: '#fff',
+          color: 'var(--foreground)',
           fontSize: '13px',
           boxShadow: '0 8px 25px rgba(0, 0, 0, 0.4)'
         }}
       >
-        <div style={{ fontWeight: '600', marginBottom: '4px', color: '#64b5f6' }}>
-          {label} {data.isCurrentYear && <span style={{ color: '#ffc107', fontSize: '11px' }}>{currentYearText}</span>}
+        <div style={{ fontWeight: '600', marginBottom: '4px', color: 'var(--accent)' }}>
+          {label} {data.isCurrentYear && <span style={{ color: '#D4A95F', fontSize: '11px' }}>({t.chart.currentYear})</span>}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <div style={{
@@ -260,7 +241,7 @@ const SimpleTooltip = ({ active, payload, label, currentYearText }) => {
             height: '8px',
             borderRadius: '50%',
             background: payload[0].color,
-            border: data.isCurrentYear ? '2px solid #ffc107' : 'none'
+            border: data.isCurrentYear ? '2px solid #D4A95F' : 'none'
           }} />
           <span>{payload[0].value !== null ? `${payload[0].value.toFixed(2)}°C` : 'N/A'}</span>
         </div>
@@ -270,8 +251,9 @@ const SimpleTooltip = ({ active, payload, label, currentYearText }) => {
   return null;
 };
 
-export default function TemperatureChart({ isOpen, onClose, tableData, currentMonth, translations }) {
+export default function TemperatureChart({ isOpen, onClose, tableData, currentMonth, locale = 'en' }) {
   const isMobile = useIsMobile();
+  const t = getTranslations(locale);
   const [month, setMonth] = useState(currentMonth || 1);
   
   const [reference, setReference] = useState('nasa');
@@ -324,17 +306,17 @@ export default function TemperatureChart({ isOpen, onClose, tableData, currentMo
         const currentYear = new Date().getFullYear();
         
         if (viewType === 'monthly') {
-          if (year === 1883 && month === 8) notable = translations?.krakatoa || 'Krakatoa Eruption';
-          if (year === 1991 && month === 6) notable = translations?.pinatubo || 'Mount Pinatubo Eruption';
-          if (year === 2016 && month >= 1 && month <= 4) notable = translations?.elNinoIntense || 'Intense El Niño';
-          if (year === 1998 && month >= 1 && month <= 6) notable = translations?.elNinoRecord || 'Record El Niño';
+          if (year === 1883 && month === 8) notable = t.chart.krakatoa;
+          if (year === 1991 && month === 6) notable = t.chart.pinatubo;
+          if (year === 2016 && month >= 1 && month <= 4) notable = t.chart.strongElNino;
+          if (year === 1998 && month >= 1 && month <= 6) notable = t.chart.recordElNino;
           
         } else {
           // Annotations pour vue annuelle
-          if (year === 1883) notable = translations?.krakatoa || 'Krakatoa Eruption';
-          if (year === 1991) notable = translations?.pinatubo || 'Mount Pinatubo Eruption';
-          if (year === 2016) notable = translations?.elNinoIntense || 'Intense El Niño';
-          if (year === 1998) notable = translations?.elNinoRecord || 'Record El Niño';
+          if (year === 1883) notable = t.chart.krakatoa;
+          if (year === 1991) notable = t.chart.pinatubo;
+          if (year === 2016) notable = t.chart.strongElNino;
+          if (year === 1998) notable = t.chart.recordElNino;
           
         }
 
@@ -390,18 +372,12 @@ export default function TemperatureChart({ isOpen, onClose, tableData, currentMo
     }
 
     return data;
-  }, [currentTableData, month, viewType]);
+  }, [currentTableData, month, viewType, t]);
 
   // Fonction pour exporter le graphique
   const exportChart = async () => {
     if (!chartRef.current) return;
     
-    const monthNames = ['', 
-      translations?.monthNames?.[1] || 'January', translations?.monthNames?.[2] || 'February', translations?.monthNames?.[3] || 'March',
-      translations?.monthNames?.[4] || 'April', translations?.monthNames?.[5] || 'May', translations?.monthNames?.[6] || 'June',
-      translations?.monthNames?.[7] || 'July', translations?.monthNames?.[8] || 'August', translations?.monthNames?.[9] || 'September',
-      translations?.monthNames?.[10] || 'October', translations?.monthNames?.[11] || 'November', translations?.monthNames?.[12] || 'December'
-    ];
     const filename = `anomalies-${viewType === 'annual' ? 'annual' : monthNames[month]}-${source}-${reference}.png`;
     
     try {
@@ -425,27 +401,22 @@ export default function TemperatureChart({ isOpen, onClose, tableData, currentMo
       link.click();
       
     } catch (error) {
-      console.error('Erreur lors de l\'export:', error);
-      alert('Erreur lors de l\'export du graphique');
+      console.error('Export error:', error);
+      alert(t.chart.exportError);
     }
   };
 
   // Couleur dynamique basée sur la source
   const getLineColor = () => {
     switch (source) {
-      case 'global': return '#ff0080';
-      case 'north': return '#00ff88';
-      case 'south': return '#ff8c00';
-      default: return '#64b5f6';
+      case 'global': return 'var(--accent-soft)';
+      case 'north': return '#D4A95F';
+      case 'south': return '#C56F4B';
+      default: return 'var(--accent)';
     }
   };
 
-  const monthNames = ['', 
-    translations?.monthNames?.[1] || 'January', translations?.monthNames?.[2] || 'February', translations?.monthNames?.[3] || 'March',
-    translations?.monthNames?.[4] || 'April', translations?.monthNames?.[5] || 'May', translations?.monthNames?.[6] || 'June',
-    translations?.monthNames?.[7] || 'July', translations?.monthNames?.[8] || 'August', translations?.monthNames?.[9] || 'September',
-    translations?.monthNames?.[10] || 'October', translations?.monthNames?.[11] || 'November', translations?.monthNames?.[12] || 'December'
-  ];
+  const monthNames = fullMonthNames[locale] || fullMonthNames.en;
 
   return (
     <AnimatePresence>
@@ -461,7 +432,7 @@ export default function TemperatureChart({ isOpen, onClose, tableData, currentMo
             left: 0,
             right: 0,
             bottom: 0,
-            background: 'rgba(0, 0, 0, 0.85)',
+            background: 'rgba(8, 12, 13, 0.86)',
             backdropFilter: 'blur(10px)',
             display: 'flex',
             alignItems: 'center',
@@ -477,17 +448,17 @@ export default function TemperatureChart({ isOpen, onClose, tableData, currentMo
             exit={{ scale: 0.8, opacity: 0, y: 50 }}
             onClick={(e) => e.stopPropagation()}
             style={{
-              background: 'linear-gradient(135deg, rgba(26, 26, 46, 0.95) 0%, rgba(15, 15, 15, 0.95) 100%)',
+              background: 'linear-gradient(135deg, rgba(17, 17, 15, 0.96) 0%, rgba(8, 12, 13, 0.96) 100%)',
               backdropFilter: 'blur(20px)',
-              borderRadius: '20px',
-              border: '1px solid rgba(100, 181, 246, 0.3)',
+              borderRadius: '12px',
+              border: '1px solid var(--border-strong)',
               padding: isMobile ? '24px' : '32px',
               maxWidth: isMobile ? '95vw' : '90vw',
               maxHeight: isMobile ? '90vh' : '85vh',
               width: '100%',
-              color: '#fff',
+              color: 'var(--foreground)',
               position: 'relative',
-              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3), 0 0 20px rgba(100, 181, 246, 0.2)',
+              boxShadow: 'var(--shadow-heavy), 0 0 28px rgba(47, 111, 115, 0.18)',
               overflowY: 'auto'
             }}
           >
@@ -498,13 +469,13 @@ export default function TemperatureChart({ isOpen, onClose, tableData, currentMo
               justifyContent: 'space-between',
               marginBottom: '24px',
               paddingBottom: '16px',
-              borderBottom: '1px solid rgba(255, 255, 255, 0.1)'
+              borderBottom: '1px solid var(--border)'
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                 <motion.div
                   style={{
-                    background: 'linear-gradient(135deg, #64b5f660, #64b5f640)',
-                    borderRadius: '12px',
+                    background: 'linear-gradient(135deg, rgba(47, 111, 115, 0.6), rgba(47, 111, 115, 0.4))',
+                    borderRadius: '8px',
                     padding: '12px',
                     display: 'flex',
                     alignItems: 'center',
@@ -512,40 +483,40 @@ export default function TemperatureChart({ isOpen, onClose, tableData, currentMo
                   }}
                   animate={{
                     boxShadow: [
-                      '0 0 0px #64b5f600',
-                      '0 0 20px #64b5f660',
-                      '0 0 0px #64b5f600'
+                      '0 0 0px rgba(47, 111, 115, 0)',
+                      '0 0 20px rgba(47, 111, 115, 0.6)',
+                      '0 0 0px rgba(47, 111, 115, 0)'
                     ]
                   }}
                   transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
                 >
-                  <BarChart3 size={24} color="#64b5f6" />
+                  <BarChart3 size={24} color="var(--accent)" />
                 </motion.div>
                 <div>
                   <h2 style={{ margin: 0, fontSize: isMobile ? '18px' : '22px', fontWeight: '700' }}>
-                    {viewType === 'annual' ? (translations?.annualAnomalies || 'Annual Anomalies') : `${translations?.monthlyAnomalies || 'Anomalies for'} ${monthNames[month]}`}
+                    {viewType === 'annual' ? t.chart.annualAnomalies : `${t.chart.anomaliesFor} ${monthNames[month]}`}
                   </h2>
-                  <p style={{ margin: 0, fontSize: '14px', color: '#bbb' }}>
-                    {source === 'global' ? 'Global' : source === 'north' ? 'Northern Hemisphere' : 'Southern Hemisphere'} • 1880-{new Date().getFullYear()}
-                    {viewType === 'annual' && <span style={{ color: '#ffc107' }}> • Current year ({new Date().getFullYear()}) highlighted</span>}
+                  <p style={{ margin: 0, fontSize: '14px', color: 'var(--foreground-muted)' }}>
+                    {source === 'global' ? 'Global' : source === 'north' ? t.table.northernHemisphere : t.table.southernHemisphere} • 1880-{new Date().getFullYear()}
+                    {viewType === 'annual' && <span style={{ color: '#D4A95F' }}> • {t.chart.currentYearSuffix} ({new Date().getFullYear()})</span>}
                   </p>
-                  <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: '#888' }}>
-                    Chart from{' '}
+                  <p style={{ margin: '4px 0 0 0', fontSize: '12px', color: 'var(--foreground-muted)' }}>
+                    {t.chart.chartFrom}{' '}
                     <a 
-                      href="https://nasa-gistemp-viewer.vercel.app" 
+                      href={SITE_URL}
                       target="_blank" 
                       rel="noopener noreferrer"
                       style={{
-                        color: '#64b5f6',
+                        color: 'var(--accent)',
                         textDecoration: 'none',
                         fontWeight: '500'
                       }}
                       onMouseEnter={(e) => e.target.style.textDecoration = 'underline'}
                       onMouseLeave={(e) => e.target.style.textDecoration = 'none'}
                     >
-                      Nasa Gistemp Viewer
+                      {SITE_NAME}
                     </a>
-                    {' '}(nasa-gistemp-viewer.vercel.app)
+                    {' '}({SITE_URL.replace(/^https?:\/\//, '')})
                   </p>
                 </div>
               </div>
@@ -555,15 +526,15 @@ export default function TemperatureChart({ isOpen, onClose, tableData, currentMo
                 whileHover={{ scale: 1.1, rotate: 90 }}
                 whileTap={{ scale: 0.9 }}
                 style={{
-                  background: 'rgba(255, 255, 255, 0.1)',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  background: 'rgba(246, 241, 232, 0.06)',
+                  border: '1px solid rgba(246, 241, 232, 0.18)',
                   borderRadius: '50%',
                   width: '40px',
                   height: '40px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#fff',
+                  color: 'var(--foreground)',
                   cursor: 'pointer',
                   transition: 'all 0.3s ease'
                 }}
@@ -583,16 +554,16 @@ export default function TemperatureChart({ isOpen, onClose, tableData, currentMo
               viewType={viewType}
               onViewTypeChange={setViewType}
               onExport={exportChart}
-              translations={translations}
+              locale={locale}
             />
 
             {/* Graphique */}
             <div style={{
               height: isMobile ? '400px' : '500px',
               width: '100%',
-              background: 'rgba(255, 255, 255, 0.02)',
-              borderRadius: '16px',
-              border: '1px solid rgba(255, 255, 255, 0.05)',
+              background: 'rgba(246, 241, 232, 0.025)',
+              borderRadius: '10px',
+              border: '1px solid var(--border)',
               padding: '20px'
             }}>
               {isLoading ? (
@@ -601,7 +572,7 @@ export default function TemperatureChart({ isOpen, onClose, tableData, currentMo
                   alignItems: 'center',
                   justifyContent: 'center',
                   height: '100%',
-                  color: '#888',
+                  color: 'var(--foreground-muted)',
                   fontSize: '16px'
                 }}>
                   <motion.div
@@ -609,42 +580,42 @@ export default function TemperatureChart({ isOpen, onClose, tableData, currentMo
                     transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
                     style={{ marginRight: '10px' }}
                   >
-                    <BarChart3 size={24} color="#64b5f6" />
+                    <BarChart3 size={24} color="var(--accent)" />
                   </motion.div>
-                  {translations?.loadingData || 'Loading data...'}
+                  {t.chart.loadingData}
                 </div>
               ) : processChartData.length > 0 ? (
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={processChartData}>
                     <CartesianGrid 
                       strokeDasharray="3 3" 
-                      stroke="rgba(255, 255, 255, 0.1)" 
+                      stroke="rgba(246, 241, 232, 0.09)" 
                       horizontal={true}
                       vertical={false}
                     />
                     <XAxis 
                       dataKey="year" 
-                      stroke="#888"
+                      stroke="var(--foreground-muted)"
                       fontSize={12}
                       tickLine={false}
-                      axisLine={{ stroke: 'rgba(255, 255, 255, 0.2)' }}
+                      axisLine={{ stroke: 'rgba(246, 241, 232, 0.18)' }}
                     />
                     <YAxis 
-                      stroke="#888"
+                      stroke="var(--foreground-muted)"
                       fontSize={12}
                       tickLine={false}
-                      axisLine={{ stroke: 'rgba(255, 255, 255, 0.2)' }}
+                      axisLine={{ stroke: 'rgba(246, 241, 232, 0.18)' }}
                       label={{ 
-                        value: 'Anomalie (°C)', 
+                        value: t.chart.yAxis, 
                         angle: -90, 
                         position: 'insideLeft',
-                        style: { textAnchor: 'middle', fill: '#888' }
+                        style: { textAnchor: 'middle', fill: 'var(--foreground-muted)' }
                       }}
                     />
-                    <Tooltip content={<SimpleTooltip currentYearText={translations?.currentYearTooltip || "(Current year)"} />} />
+                    <Tooltip content={<SimpleTooltip locale={locale} />} />
                     <ReferenceLine 
                       y={0} 
-                      stroke="rgba(255, 255, 255, 0.5)" 
+                      stroke="rgba(246, 241, 232, 0.42)" 
                       strokeDasharray="2 2" 
                       strokeWidth={1}
                     />
@@ -663,7 +634,7 @@ export default function TemperatureChart({ isOpen, onClose, tableData, currentMo
                               cy={cy}
                               r={4}
                               fill={payload.isCalculated ? "none" : getLineColor()}
-                              stroke="#ffc107"
+                              stroke="#D4A95F"
                               strokeWidth={3}
                               strokeDasharray={payload.isCalculated ? "4,2" : "0"}
                               opacity={1}
@@ -676,7 +647,7 @@ export default function TemperatureChart({ isOpen, onClose, tableData, currentMo
                         r: 4, 
                         fill: getLineColor(),
                         strokeWidth: 2,
-                        stroke: '#fff'
+                        stroke: 'var(--foreground)'
                       }}
                     />
                   </LineChart>
@@ -687,10 +658,10 @@ export default function TemperatureChart({ isOpen, onClose, tableData, currentMo
                   alignItems: 'center',
                   justifyContent: 'center',
                   height: '100%',
-                  color: '#888',
+                  color: 'var(--foreground-muted)',
                   fontSize: '16px'
                 }}>
-                  {translations?.loadingData || 'Loading data...'}
+                  {t.chart.loadingData}
                 </div>
               )}
             </div>
@@ -704,11 +675,11 @@ export default function TemperatureChart({ isOpen, onClose, tableData, currentMo
                 gap: '20px',
                 margin: '16px 0',
                 padding: '12px',
-                background: 'rgba(255, 255, 255, 0.03)',
+                background: 'rgba(246, 241, 232, 0.035)',
                 borderRadius: '8px',
-                border: '1px solid rgba(255, 255, 255, 0.05)',
+                border: '1px solid var(--border)',
                 fontSize: '12px',
-                color: '#ccc'
+                color: 'var(--foreground-soft)'
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <div style={{
@@ -717,7 +688,7 @@ export default function TemperatureChart({ isOpen, onClose, tableData, currentMo
                     background: getLineColor(),
                     borderRadius: '1px'
                   }} />
-                  <span>{viewType === 'annual' ? 'Données annuelles' : 'Données mensuelles'}</span>
+                  <span>{viewType === 'annual' ? t.chart.annualData : t.chart.monthlyData}</span>
                 </div>
                 {viewType === 'annual' && (
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -726,9 +697,9 @@ export default function TemperatureChart({ isOpen, onClose, tableData, currentMo
                       height: '8px',
                       background: getLineColor(),
                       borderRadius: '50%',
-                      border: '2px solid #ffc107'
+                      border: '2px solid #D4A95F'
                     }} />
-                    <span>Année courante ({new Date().getFullYear()}) - calculée</span>
+                    <span>{t.chart.currentYearCalculated} ({new Date().getFullYear()})</span>
                   </div>
                 )}
               </div>
@@ -753,9 +724,9 @@ export default function TemperatureChart({ isOpen, onClose, tableData, currentMo
               };
               
               const trends = [
-                { label: `${translations?.trendPerDecade || 'Trend/decade'} 1880`, value: calculateTrendPerDecade(processChartData, 1880), color: '#ff6b6b' },
-                { label: `${translations?.trendPerDecade || 'Trend/decade'} 1950`, value: calculateTrendPerDecade(processChartData, 1950), color: '#ffc107' },
-                { label: `${translations?.trendPerDecade || 'Trend/decade'} 2000`, value: calculateTrendPerDecade(processChartData, 2000), color: '#ff4444' }
+                { label: t.chart.trend1880, value: calculateTrendPerDecade(processChartData, 1880), color: '#C56F4B' },
+                { label: t.chart.trend1950, value: calculateTrendPerDecade(processChartData, 1950), color: '#D4A95F' },
+                { label: t.chart.trend2000, value: calculateTrendPerDecade(processChartData, 2000), color: 'var(--accent-soft)' }
               ];
               
               return (
@@ -767,13 +738,13 @@ export default function TemperatureChart({ isOpen, onClose, tableData, currentMo
                 }}>
                   {trends.map((stat, idx) => (
                     <div key={idx} style={{
-                      background: 'rgba(255, 255, 255, 0.05)',
-                      borderRadius: '12px',
+                      background: 'rgba(246, 241, 232, 0.035)',
+                      borderRadius: '8px',
                       padding: '12px',
                       textAlign: 'center',
-                      border: '1px solid rgba(255, 255, 255, 0.1)'
+                      border: '1px solid var(--border)'
                     }}>
-                      <div style={{ fontSize: '11px', color: '#888', marginBottom: '4px' }}>
+                      <div style={{ fontSize: '11px', color: 'var(--foreground-muted)', marginBottom: '4px' }}>
                         {stat.label}
                       </div>
                       <div style={{ 

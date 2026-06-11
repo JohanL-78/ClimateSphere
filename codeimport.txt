@@ -1,0 +1,1034 @@
+=== THREEGLOBE PROJECT CODE EXPORT ===
+
+This file contains all the source code from the threeglobe project.
+Generated on 2025-09-14
+
+=== FILE STRUCTURE ===
+- package.json (dependencies and scripts)
+- tsconfig.json (TypeScript configuration)
+- next.config.ts (Next.js configuration)
+- next-env.d.ts (Next.js TypeScript definitions)
+- app/layout.tsx (Root layout)
+- app/page.tsx (Main page)
+- app/globals.css (Global styles)
+- app/components/Navbar.tsx (Navigation component)
+- app/components/Globe.tsx (3D Globe component)
+- app/components/About.tsx (About section component)
+- README.md (Project documentation)
+
+================================================================================
+
+=== package.json ===
+{
+  "name": "threeglobe",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@react-three/drei": "^10.7.4",
+    "@react-three/fiber": "^9.3.0",
+    "@vercel/analytics": "^1.5.0",
+    "canvas": "^3.2.0",
+    "d3-scale": "^4.0.2",
+    "d3-scale-chromatic": "^3.1.0",
+    "framer-motion": "^12.23.12",
+    "lucide-react": "^0.543.0",
+    "next": "15.5.2",
+    "react": "19.1.0",
+    "react-dom": "19.1.0",
+    "react-globe.gl": "^2.36.0",
+    "three": "^0.180.0"
+  },
+  "devDependencies": {
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "15.5.2",
+    "tailwindcss": "^4",
+    "typescript": "^5"
+  }
+}
+
+================================================================================
+
+=== tsconfig.json ===
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "preserve",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./*"]
+    }
+  },
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
+  "exclude": ["node_modules"]
+}
+
+================================================================================
+
+=== next.config.ts ===
+import type { NextConfig } from "next";
+
+const nextConfig: NextConfig = {
+  /* config options here */
+};
+
+export default nextConfig;
+
+================================================================================
+
+=== next-env.d.ts ===
+/// <reference types="next" />
+/// <reference types="next/image-types/global" />
+/// <reference path="./.next/types/routes.d.ts" />
+
+// NOTE: This file should not be edited
+// see https://nextjs.org/docs/app/api-reference/config/typescript for more information.
+
+================================================================================
+
+=== app/layout.tsx ===
+import { Orbitron } from "next/font/google";
+import "./globals.css";
+import { Analytics } from '@vercel/analytics/react';
+import type { Metadata, Viewport } from 'next';
+
+const orbitron = Orbitron({ subsets: ["latin"], weight: ["400","700"] });
+
+export const metadata: Metadata = {
+  title: 'Meteo Explorer - Globe météorologique interactif 3D',
+  description: 'Explorez les conditions météorologiques mondiales sur un globe 3D interactif. Données en temps réel, prévisions 7 jours, interface immersive avec Three.js et react-globe.gl.',
+  keywords: ['météo', 'globe 3D', 'weather', 'interactive', 'three.js', 'react-globe.gl', 'visualisation météorologique'],
+  authors: [{ name: 'Johan Lorck' }],
+  creator: 'Johan Lorck',
+  publisher: 'Johan Lorck',
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+    },
+  },
+  openGraph: {
+    title: 'Meteo Explorer - Globe météorologique interactif 3D',
+    description: 'Explorez les conditions météorologiques mondiales sur un globe 3D interactif. Données en temps réel, prévisions 7 jours.',
+    type: 'website',
+    locale: 'fr_FR',
+    siteName: 'Meteo Explorer',
+  },
+  category: 'weather',
+};
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 2,
+};
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="fr">
+      <head>
+        <meta name="description" content="Explorez les conditions météorologiques mondiales sur un globe 3D interactif. Données en temps réel, prévisions 7 jours, interface immersive avec Three.js et react-globe.gl." />
+        <link rel="dns-prefetch" href="https://api.open-meteo.com" />
+        <link rel="dns-prefetch" href="https://nominatim.openstreetmap.org" />
+        <link rel="dns-prefetch" href="https://cdn.jsdelivr.net" />
+      </head>
+      <body className={orbitron.className}>
+        {children}
+        <Analytics />
+      </body>
+    </html>
+  );
+}
+
+================================================================================
+
+=== app/page.tsx ===
+"use client";
+
+import { useState } from "react";
+import GlobeComponent from "./components/Globe";
+import Navbar from "./components/Navbar";
+import About from "./components/About";
+
+export default function Page() {
+  const [showAbout, setShowAbout] = useState(false);
+
+  return (
+    <main className="w-full h-screen">
+      <Navbar onAboutClick={() => setShowAbout(true)} />
+      <GlobeComponent />
+      {showAbout && <About onClose={() => setShowAbout(false)} />}
+    </main>
+  );
+}
+
+================================================================================
+
+=== app/globals.css ===
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+================================================================================
+
+=== app/components/Navbar.tsx ===
+export default function Navbar({ onAboutClick }: { onAboutClick: () => void }) {
+    return (
+    <div className="h-25 flex items-center justify-between bg-black text-4xl px-8"
+       style={{ color: 'rgba(0,255,255, 0.67)', textShadow: '0 5px 35px rgba(0,255,255, 0.97)' }}>
+      <div>Meteo Explorer</div>
+      <div className="text-sm cursor-pointer hover:opacity-70" onClick={onAboutClick}>About</div>
+  </div>)
+}
+
+================================================================================
+
+=== app/components/Globe.tsx ===
+"use client";
+
+import dynamic from "next/dynamic";
+import { useRef, useState, useEffect } from "react";
+import { motion } from "framer-motion";
+import {
+  Search,
+  MapPin,
+  Thermometer,
+  Wind,
+  CloudRain,
+  Sun,
+  Moon,
+  Menu,
+  X,
+  ChevronDown,
+  Globe as GlobeIcon,
+  Calendar
+} from "lucide-react";
+
+const Globe = dynamic(() => import("react-globe.gl"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-screen flex items-center justify-center bg-black">
+      <div className="text-center">
+        <div className="animate-spin rounded-full h-16 w-16 border-2 border-cyan-400 border-t-transparent mb-4 mx-auto"></div>
+        <p className="text-cyan-300 font-sans text-lg">Chargement du globe 3D...</p>
+      </div>
+    </div>
+  )
+});
+
+export default function Home() {
+  const globeRef = useRef<any>(null);
+  const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null);
+  const [temperature, setTemperature] = useState<number | null>(null);
+  const [city, setCity] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+  const [windSpeed, setWindSpeed] = useState<number | null>(null);
+  const [precipitation, setPrecipitation] = useState<number | null>(null);
+  const [forecast, setForecast] = useState<Array<{
+    date: string;
+    tempMax: number;
+    tempMin: number;
+    precipitation: number;
+  }>>([]);
+  const [isMenuVisible, setIsMenuVisible] = useState<boolean>(true);
+  const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
+  const [isDayMode, setIsDayMode] = useState<boolean>(true);
+  const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
+  const [isMobile, setIsMobile] = useState<boolean>(false);
+  const [isExpanded, setIsExpanded] = useState<boolean>(false);
+
+  // Gestion du redimensionnement et détection mobile
+  useEffect(() => {
+    const updateDimensions = () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+
+      setDimensions({ width, height });
+      setIsMobile(width < 768); // Mobile si largeur < 768px
+
+      // Force le redimensionnement du globe après un délai
+      if (globeRef.current) {
+        setTimeout(() => {
+          const canvas = globeRef.current?.scene()?.children[0]?.children.find(
+            (child: any) => child.type === 'WebGLRenderer'
+          );
+          if (canvas) {
+            globeRef.current?.renderer().setSize(window.innerWidth, window.innerHeight);
+          }
+        }, 100);
+      }
+    };
+
+    // Initialisation
+    updateDimensions();
+
+    // Écouteur d'événements
+    window.addEventListener('resize', updateDimensions);
+
+    // Nettoyage
+    return () => window.removeEventListener('resize', updateDimensions);
+  }, []);
+
+  const fetchWeather = async (lat: number, lng: number) => {
+    const res = await fetch(
+      `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lng}&current=temperature_2m,precipitation,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min,precipitation_sum&timezone=auto`
+    );
+    const data = await res.json();
+    console.log("Données météo:", data); // Debug
+    setTemperature(data.current.temperature_2m);
+    setWindSpeed(data.current.wind_speed_10m);
+    setPrecipitation(data.current.precipitation);
+
+    // Prévisions 7 jours
+    const dailyForecast = data.daily.time.slice(0, 7).map((date: string, index: number) => ({
+      date,
+      tempMax: data.daily.temperature_2m_max[index],
+      tempMin: data.daily.temperature_2m_min[index],
+      precipitation: data.daily.precipitation_sum[index]
+    }));
+    setForecast(dailyForecast);
+  };
+
+  const fetchCity = async (lat: number, lng: number) => {
+    try {
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`
+      );
+      const data = await res.json();
+
+      // Vérifie si l'adresse existe
+      if (data.address) {
+        setCity(
+          data.address.city ||
+            data.address.town ||
+            data.address.village ||
+            data.address.country ||
+            "Coordonnées GPS"
+        );
+      } else {
+        // Si pas d'adresse...
+        setCity("Coordonnées GPS");
+      }
+    } catch (error) {
+      console.error("Error fetching city:", error);
+      setCity("Coordonnées GPS");
+    }
+  };
+
+  const searchCity = async () => {
+    if (!query) return;
+    const res = await fetch(
+      `https://nominatim.openstreetmap.org/search?city=${encodeURIComponent(
+        query
+      )}&format=json&limit=1`
+    );
+    const data = await res.json();
+    if (data.length > 0) {
+      const { lat, lon, display_name } = data[0];
+      const latNum = parseFloat(lat);
+      const lngNum = parseFloat(lon);
+      setCoords({ lat: latNum, lng: lngNum });
+      setCity(display_name);
+      fetchWeather(latNum, lngNum);
+      globeRef.current?.pointOfView(
+        {
+          lat: isMobile ? latNum - 20 : latNum, // Décalage vers le sud sur mobile
+          lng: lngNum,
+          altitude: isMobile ? 4.5 : 2.5
+        },
+        1000
+      );
+    }
+  };
+
+  const ringsData = coords
+    ? [
+        {
+          lat: coords.lat,
+          lng: coords.lng,
+          maxRadius: 10,
+          propagationSpeed: 2,
+          repeatPeriod: 1000,
+          color: "rgba(0, 200, 255, 0.9)"
+        }
+      ]
+    : [];
+
+  return (
+    <main className="w-full h-screen relative">
+        {/* Globe masqué quand le menu mobile est étendu */}
+        {!(isMobile && isExpanded) && (
+          <Globe
+          ref={globeRef}
+          globeImageUrl={isDayMode ? "https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-blue-marble.jpg" : "textures/BlackMarble_2016_3km.jpg"}
+          backgroundImageUrl="https://cdn.jsdelivr.net/npm/three-globe/example/img/night-sky.png"
+          ringsData={ringsData}
+          ringColor={(d: any) => d.color}
+          ringMaxRadius={(d: any) => d.maxRadius}
+          ringPropagationSpeed={(d: any) => d.propagationSpeed}
+          ringRepeatPeriod={(d: any) => d.repeatPeriod}
+          // Customisation de l'atmosphère et de l'éclairage
+          showAtmosphere={true}
+          atmosphereColor="rgb(0,255,255)"
+          atmosphereAltitude={0.18}
+          enablePointerInteraction={true}
+          // Redimensionnement responsive
+          width={dimensions.width}
+          height={dimensions.height}
+        // Position initiale de la caméra pour décaler la sphère
+        onGlobeReady={() => {
+          if (globeRef.current) {
+            // Décale la vue selon le mode desktop/mobile
+            globeRef.current.pointOfView({
+              lat: isMobile ? -30 : 0, // Décalage vers le sud sur mobile
+              lng: isMobile ? 30 : 50, // Moins de décalage est sur mobile
+              altitude: isMobile ? 4.5 : 2.5 // Plus éloigné sur mobile
+            }, 0);
+          }
+        }}
+        onGlobeClick={(c: { lat: number; lng: number }) => {
+          setCoords(c);
+          fetchWeather(c.lat, c.lng);
+          fetchCity(c.lat, c.lng);
+          setQuery(""); // Vide la barre de recherche quand on clique sur le globe
+        }}
+      />
+        )}
+
+      {/* Menu design futuriste */}
+      {isMenuVisible && (
+        <motion.div
+          initial={{ opacity: 0, x: -40 }}
+          animate={{ opacity: 1, x: 0 }}
+          exit={{ opacity: 0, x: -40 }}
+          transition={{ duration: 0.6, ease: "easeOut" }}
+          className={`absolute rounded-xl backdrop-blur-xl border border-cyan-400/30
+                      shadow-[0_0_25px_rgba(0,255,255,0.4)] ${
+                        isMobile
+                          ? (isExpanded
+                              ? 'inset-4 p-3 text-sm overflow-y-auto bg-gradient-to-br from-black/95 to-black/90'
+                              : 'top-2 left-10 right-10 p-2 text-xs bg-gradient-to-br from-white/10 to-white/5')
+                          : 'top-6 left-6 p-4 w-72 bg-gradient-to-br from-white/10 to-white/5'
+                      }`}
+        >
+          {isMobile ? (
+            // Menu mobile
+            <div>
+              {isExpanded ? (
+                // Menu étendu (plein écran)
+                <div>
+                  {/* Header étendu avec bouton fermer */}
+                  <div className="flex justify-between items-start mb-4">
+                    <h3 className="text-lg font-bold text-cyan-300 pt-2">Météo Détaillée</h3>
+                    <button
+                      onClick={() => setIsExpanded(false)}
+                      className="text-cyan-300 hover:text-white hover:bg-white/10 transition-all rounded-lg p-4 min-w-[48px] min-h-[48px] flex items-center justify-center touch-manipulation"
+                      style={{ touchAction: 'manipulation' }}
+                      title="Réduire"
+                    >
+                      <X size={22} />
+                    </button>
+                  </div>
+
+                  {/* Contenu complet du menu étendu */}
+                  {coords && (
+                    <div className="space-y-3">
+                      <div className="bg-white/10 border border-cyan-400/20 rounded px-3 py-2
+                                      text-cyan-100 tracking-wide drop-shadow-[0_0_8px_rgba(0,255,255,0.6)] flex items-center gap-2">
+                        <MapPin size={16} /> <b>Lat:</b> {coords.lat.toFixed(2)} | <b>Lng:</b> {coords.lng.toFixed(2)}
+                      </div>
+                      {city && (
+                        <div className="bg-white/10 border border-cyan-400/20 rounded px-3 py-2
+                                        text-cyan-200 font-semibold flex items-center gap-2">
+                          <MapPin size={16} /> {city}
+                        </div>
+                      )}
+                      {temperature !== null && (
+                        <div className="bg-white/10 border border-cyan-400/20 rounded px-3 py-2
+                                        text-pink-300 font-bold text-lg drop-shadow-[0_0_10px_rgba(255,0,128,0.8)] flex items-center gap-2">
+                          <Thermometer size={20} /> {temperature} °C
+                        </div>
+                      )}
+                      {windSpeed !== null && (
+                        <div className="bg-white/10 border border-cyan-400/20 rounded px-3 py-2
+                                        text-green-300 font-semibold drop-shadow-[0_0_8px_rgba(0,255,128,0.6)] flex items-center gap-2">
+                          <Wind size={18} /> {windSpeed} km/h
+                        </div>
+                      )}
+                      {precipitation !== null && (
+                        <div className="bg-white/10 border border-cyan-400/20 rounded px-3 py-2
+                                        text-blue-300 font-semibold drop-shadow-[0_0_8px_rgba(0,128,255,0.6)] flex items-center gap-2">
+                          <CloudRain size={18} /> {precipitation} mm
+                        </div>
+                      )}
+
+                      {/* Prévisions 7 jours dans le menu étendu */}
+                      {forecast.length > 0 && (
+                        <div className="mt-6 space-y-2">
+                          <h3 className="text-cyan-300 font-bold text-sm tracking-wider mb-3 flex items-center gap-2">
+                            <Calendar size={16} /> PRÉVISIONS 7 JOURS
+                          </h3>
+                          <div className="space-y-2">
+                            {forecast.map((day, index) => (
+                              <div
+                                key={day.date}
+                                className="bg-white/5 border border-cyan-400/15 rounded-lg px-3 py-2
+                                           text-xs flex justify-between items-center"
+                              >
+                                <div className="text-cyan-200">
+                                  {index === 0 ? "Aujourd'hui" :
+                                   new Date(day.date).toLocaleDateString('fr-FR', { weekday: 'short' })}
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <span className="text-orange-300">{day.tempMax.toFixed(0)}°</span>
+                                  <span className="text-blue-300">{day.tempMin.toFixed(0)}°</span>
+                                  <span className="text-cyan-300">{day.precipitation.toFixed(0)}mm</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                // Menu simplifié
+                <div>
+                  {/* Header mobile avec dropdown seulement */}
+                  <div className="mb-2">
+                    <div className="relative">
+                      <button
+                        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                        className="transition-colors p-1"
+                        style={{ color: 'rgba(0,255,255,0.9)' }}
+                        title="Options"
+                      >
+                        <Menu size={16} />
+                      </button>
+                      {isDropdownOpen && (
+                        <motion.div
+                          initial={{ opacity: 0, y: -10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -10 }}
+                          className="absolute right-0 bottom-1 bg-white/10 backdrop-blur-xl
+                                     border border-cyan-400/30 rounded-lg shadow-lg py-1 min-w-[120px] z-50"
+                        >
+                          <button
+                            onClick={() => setIsDayMode(!isDayMode)}
+                            className="w-full px-4 py-4 text-left text-sm text-cyan-300/80
+                                       hover:text-cyan-600 hover:bg-white/90 transition-colors min-h-[44px] touch-manipulation"
+                            style={{ touchAction: 'manipulation' }}
+                          >
+                            <div className="flex items-center gap-2">
+                              {isDayMode ? <Moon size={16} /> : <Sun size={16} />}
+                              {isDayMode ? "Mode nuit" : "Mode jour"}
+                            </div>
+                          </button>
+                          <button
+                            onClick={() => {
+                              setIsMenuVisible(false);
+                              setIsDropdownOpen(false);
+                            }}
+                            className="w-full px-4 py-4 text-left text-sm text-cyan-300/80
+                                       hover:text-cyan-600 hover:bg-white/90 transition-colors min-h-[44px] touch-manipulation"
+                            style={{ touchAction: 'manipulation' }}
+                          >
+                            Fermer le menu
+                          </button>
+                        </motion.div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Barre de recherche mobile */}
+                  <div className="flex items-center bg-white/10 rounded-lg overflow-hidden ring-1 ring-cyan-400/40
+                                  focus-within:ring-2 focus-within:ring-cyan-300 transition-all mb-3">
+                    <span className="px-3 text-cyan-300"><Search size={16} /></span>
+                    <input
+                      type="text"
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      onKeyDown={(e) => e.key === 'Enter' && searchCity()}
+                      placeholder="Ville..."
+                      className="flex-1 px-2 py-2 bg-transparent outline-none
+                                 text-cyan-100 placeholder-cyan-400/50 tracking-wide"
+                    />
+                    <button
+                      onClick={searchCity}
+                      className="px-2 py-2 bg-cyan-600 hover:bg-cyan-500 transition rounded-r-lg
+                                 text-white text-sm font-bold shadow-[0_0_12px_rgba(0,255,255,0.6)]"
+                    >
+                      Go
+                    </button>
+                  </div>
+
+                  {/* Température uniquement */}
+                  {temperature !== null && (
+                    <div className="bg-white/10 border border-cyan-400/20 rounded px-3 py-2
+                                    text-pink-300 font-bold text-lg drop-shadow-[0_0_10px_rgba(255,0,128,0.8)] mb-3 flex items-center gap-2">
+                      <Thermometer size={20} /> {temperature} °C
+                    </div>
+                  )}
+
+                  {/* Bouton voir plus */}
+                  {coords && (
+                    <button
+                      onClick={() => setIsExpanded(true)}
+                      className="w-full py-2 text-cyan-300 hover:text-cyan-200 transition-colors
+                                 text-sm border border-cyan-400/30 rounded-lg hover:bg-white/5"
+                    >
+                      <div className="flex items-center gap-1">
+                        Voir plus <ChevronDown size={16} />
+                      </div>
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
+          ) : (
+            // Menu desktop complet
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <button
+                  onClick={() => setIsDayMode(!isDayMode)}
+                  className="flex items-center transition-colors text-xs px-2 py-1 rounded-md
+                             hover:bg-white/10"
+                  style={{ color: 'rgba(0,255,255,0.9)' }}
+                  title={isDayMode ? "Passer en mode nuit" : "Passer en mode jour"}
+                >
+                  {isDayMode ? <Moon size={16} className="mr-1" /> : <Sun size={16} className="mr-1" />}
+                  <span>{isDayMode ? "Mode nuit" : "Mode jour"}</span>
+                </button>
+
+                <div className="relative">
+                  <button
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    className="transition-colors p-2"
+                    style={{ color: 'rgba(0,255,255,0.9)' }}
+                    title="Options"
+                  >
+                    <Menu size={16} />
+                  </button>
+                  {isDropdownOpen && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="absolute right-0 top-8 bg-white/10 backdrop-blur-xl
+                                 border border-cyan-400/30 rounded-lg shadow-lg py-1 min-w-[120px]"
+                    >
+                      <button
+                        onClick={() => {
+                          setIsMenuVisible(false);
+                          setIsDropdownOpen(false);
+                        }}
+                        className="w-full px-3 py-2 text-left text-sm text-cyan-300/80
+                                   hover:text-cyan-600 hover:bg-white/90 transition-colors"
+                      >
+                        Fermer le menu
+                      </button>
+                    </motion.div>
+                  )}
+                </div>
+              </div>
+
+              {/* Barre de recherche desktop */}
+              <div className="flex items-center bg-white/10 rounded-lg overflow-hidden ring-1 ring-cyan-400/40
+                             focus-within:ring-2 focus-within:ring-cyan-300 transition-all mb-4">
+                <span className="px-3 text-cyan-300"><Search size={18} /></span>
+                <input
+                  type="text"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && searchCity()}
+                  placeholder="Tape une ville..."
+                  className="flex-1 px-2 py-2 bg-transparent outline-none
+                             text-cyan-100 placeholder-cyan-400/50 tracking-wide"
+                />
+                <button
+                  onClick={searchCity}
+                  className="px-3 py-2 bg-cyan-600 hover:bg-cyan-500 transition rounded-r-lg
+                             text-white text-sm font-bold shadow-[0_0_12px_rgba(0,255,255,0.6)]"
+                >
+                  Go
+                </button>
+              </div>
+
+              {/* Infos desktop */}
+              {coords ? (
+                <motion.div
+                  key={coords.lat + coords.lng}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4 }}
+                  className="space-y-3 text-sm"
+                >
+                  <div className="bg-white/10 border border-cyan-400/20 rounded px-3 py-2
+                                  text-cyan-100 tracking-wide drop-shadow-[0_0_8px_rgba(0,255,255,0.6)] flex items-center gap-2">
+                    <MapPin size={16} /> <b>Lat:</b> {coords.lat.toFixed(2)} | <b>Lng:</b> {coords.lng.toFixed(2)}
+                  </div>
+                  {city && (
+                    <div className="bg-white/10 border border-cyan-400/20 rounded px-3 py-2
+                                    text-cyan-200 font-semibold flex items-center gap-2">
+                      <MapPin size={16} /> {city}
+                    </div>
+                  )}
+                  {temperature !== null && (
+                    <div className="bg-white/10 border border-cyan-400/20 rounded px-3 py-2
+                                    text-pink-300 font-bold text-lg drop-shadow-[0_0_10px_rgba(255,0,128,0.8)] flex items-center gap-2">
+                      <Thermometer size={20} /> {temperature} °C
+                    </div>
+                  )}
+                  {windSpeed !== null && (
+                    <div className="bg-white/10 border border-cyan-400/20 rounded px-3 py-2
+                                    text-green-300 font-semibold drop-shadow-[0_0_8px_rgba(0,255,128,0.6)] flex items-center gap-2">
+                      <Wind size={18} /> {windSpeed} km/h
+                    </div>
+                  )}
+                  {precipitation !== null && (
+                    <div className="bg-white/10 border border-cyan-400/20 rounded px-3 py-2
+                                    text-blue-300 font-semibold drop-shadow-[0_0_8px_rgba(0,128,255,0.6)] flex items-center gap-2">
+                      <CloudRain size={18} /> {precipitation} mm
+                    </div>
+                  )}
+
+                  {/* Prévisions 7 jours */}
+                  {forecast.length > 0 && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.5, delay: 0.2 }}
+                      className="mt-6 space-y-2"
+                    >
+                      <h3 className="text-cyan-300 font-bold text-sm tracking-wider mb-3 flex items-center gap-2">
+                        <Calendar size={16} /> PRÉVISIONS 7 JOURS
+                      </h3>
+                      <div className="max-h-48 overflow-y-auto space-y-2">
+                        {forecast.map((day, index) => (
+                          <div
+                            key={day.date}
+                            className="bg-white/5 border border-cyan-400/15 rounded-lg px-3 py-2
+                                       text-xs flex justify-between items-center"
+                          >
+                            <div className="text-cyan-200">
+                              {index === 0 ? "Aujourd'hui" :
+                               new Date(day.date).toLocaleDateString('fr-FR', { weekday: 'short' })}
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <span className="text-orange-300">{day.tempMax.toFixed(0)}°</span>
+                              <span className="text-blue-300">{day.tempMin.toFixed(0)}°</span>
+                              <span className="text-cyan-300">{day.precipitation.toFixed(0)}mm</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </motion.div>
+              ) : (
+                <p className="text-cyan-200/70 text-sm italic">👉 Clique sur le globe ou cherche une ville</p>
+              )}
+            </div>
+          )}
+        </motion.div>
+      )}
+
+      {/* Bouton pour rouvrir le menu */}
+      {!isMenuVisible && (
+        <motion.button
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.8 }}
+          transition={{ duration: 0.3 }}
+          onClick={() => setIsMenuVisible(true)}
+          className="absolute top-6 left-6 p-3 rounded-full
+                     bg-gradient-to-br from-cyan-500/20 to-cyan-600/20
+                     backdrop-blur-xl border border-cyan-400/40
+                     text-cyan-300 hover:text-white
+                     hover:bg-gradient-to-br hover:from-cyan-500/30 hover:to-cyan-600/30
+                     shadow-[0_0_20px_rgba(0,255,255,0.4)]
+                     hover:shadow-[0_0_30px_rgba(0,255,255,0.6)]
+                     transition-all duration-300"
+          title="Ouvrir Globe Explorer"
+        >
+          <GlobeIcon size={24} />
+        </motion.button>
+      )}
+
+    </main>
+  );
+}
+
+================================================================================
+
+=== app/components/About.tsx ===
+export default function About({ onClose }: { onClose: () => void }) {
+    return (
+
+        <div className="fixed inset-0 bg-opacity-90 z-50 flex items-center justify-center"
+             style={{ backgroundImage: 'url(https://cdn.jsdelivr.net/npm/three-globe/example/img/night-sky.png)' }}>
+            <div className="bg-black border border-cyan-400 rounded-lg p-8 max-w-2xl max-h-[80vh] overflow-y-auto"
+                 style={{ color: 'rgba(0,255,255, 0.87)', boxShadow: '0 0 20px rgba(0,255,255, 0.3)' }}>
+
+                {/* Bouton pour fermer */}
+                <div className="flex justify-end mb-4">
+                    <button
+                        onClick={onClose}
+                        className="text-2xl hover:opacity-70 transition-opacity"
+                        style={{ color: 'rgba(0,255,255, 0.67)' }}>
+                        ✕
+                    </button>
+                </div>
+
+                {/* Titre */}
+                <h1 className="text-3xl mb-6 text-center"
+                    style={{ color: 'rgba(0,255,255, 0.67)', textShadow: '0 3px 20px rgba(0,255,255, 0.7)' }}>
+                    À propos de Meteo Explorer
+                </h1>
+
+                {/* App Description */}
+                <div className="space-y-4 mb-8">
+                    <h2 className="text-xl mb-3" style={{ color: 'rgba(0,255,255, 0.8)' }}>
+                        Fonctionnement de l&apos;application
+                    </h2>
+                    <p className="text-base leading-relaxed font-sans">
+                        Meteo Explorer est une application interactive qui visualise les données météorologiques
+                        mondiales sur un globe 3D interactif. L&apos;application utilise react-globe.gl pour créer
+                        une expérience immersive permettant d&apos;explorer en temps réel les conditions météorologiques
+                        de différentes régions du monde.
+                    </p>
+                    <p className="text-base leading-relaxed font-sans">
+                        L&apos;interface propose une navigation fluide avec des animations Framer Motion, des icônes
+                        Lucide React, et une interface responsive adaptée aux appareils mobiles et desktop.
+                        Les données météorologiques sont récupérées via l&apos;API Open-Meteo et les coordonnées
+                        géographiques sont géocodées avec l&apos;API OpenStreetMap Nominatim.
+                    </p>
+                </div>
+
+                {/* Technologies */}
+                <div className="space-y-4 mb-8">
+                    <h2 className="text-xl mb-3" style={{ color: 'rgba(0,255,255, 0.8)' }}>
+                        Technologies utilisées
+                    </h2>
+                    <div className="text-base space-y-2 font-sans">
+                        <p>• <span className="font-semibold">react-globe.gl</span> - Wrapper React de globe.gl pour la visualisation 3D</p>
+                        <p>• <span className="font-semibold">Three.js</span> - Moteur de rendu 3D WebGL</p>
+                        <p>• <span className="font-semibold">Next.js</span> - Framework React avec App Router</p>
+                        <p>• <span className="font-semibold">Framer Motion</span> - Animations et transitions fluides</p>
+                        <p>• <span className="font-semibold">Lucide React</span> - Bibliothèque d&apos;icônes modernes</p>
+                        <p>• <span className="font-semibold">Tailwind CSS</span> - Framework CSS utilitaire</p>
+                        <p>• <span className="font-semibold">TypeScript</span> - Typage statique pour JavaScript</p>
+                    </div>
+                </div>
+
+                {/* APIs */}
+                <div className="space-y-4 mb-8">
+                    <h2 className="text-xl mb-3" style={{ color: 'rgba(0,255,255, 0.8)' }}>
+                        APIs utilisées
+                    </h2>
+                    <div className="text-base space-y-2 font-sans">
+                        <p>• <span className="font-semibold">Open-Meteo API</span> - Données météorologiques en temps réel (température, vent, précipitations, prévisions 7 jours)</p>
+                        <p>• <span className="font-semibold">OpenStreetMap Nominatim API</span> - Géocodage et géocodage inverse (recherche de villes, coordonnées GPS)</p>
+                    </div>
+                </div>
+
+                {/* Credits */}
+                <div className="space-y-4 mb-8">
+                    <h2 className="text-xl mb-3" style={{ color: 'rgba(0,255,255, 0.8)' }}>
+                        Remerciements
+                    </h2>
+                    <div className="text-base space-y-2 font-sans">
+                        <p>• <span className="font-semibold">Vasturiano</span> - Créateur de globe.gl et react-globe.gl</p>
+                        <p>• <span className="font-semibold">Open-Meteo</span> - API météorologique gratuite et open-source</p>
+                        <p>• <span className="font-semibold">OpenStreetMap Nominatim</span> - Service de géocodage gratuit</p>
+                        <p>• <span className="font-semibold">Three.js Community</span> - Écosystème de visualisation 3D</p>
+                    </div>
+                </div>
+
+                {/* Auteur */}
+                <div className="space-y-4">
+                    <h2 className="text-xl mb-3" style={{ color: 'rgba(0,255,255, 0.8)' }}>
+                        Développeur
+                    </h2>
+                    <p className="text-base mb-3 font-sans">
+                        Créé par Johan Lorck
+                    </p>
+                    <a
+                        href="https://github.com/JohanL-78/MeteoExplorer.git"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-block px-4 py-2 border border-cyan-400 rounded text-cyan-300 hover:bg-cyan-400 hover:text-white transition-all duration-300">
+                        GitHub Profile
+                    </a>
+                </div>
+            </div>
+        </div>
+    );
+}
+
+================================================================================
+
+=== README.md ===
+# 🌍 Meteo Explorer
+
+Une application météorologique interactive avec un globe 3D immersif construit avec Next.js et react-globe.gl.
+
+![Next.js](https://img.shields.io/badge/Next.js-15.5-black)
+![React](https://img.shields.io/badge/React-19.1-blue)
+![Three.js](https://img.shields.io/badge/Three.js-3D-green)
+![TypeScript](https://img.shields.io/badge/TypeScript-Ready-blue)
+
+## ✨ Fonctionnalités
+
+- 🌍 **Globe 3D interactif** avec navigation fluide
+- 🌡️ **Données météo en temps réel** (température, vent, précipitations)
+- 📅 **Prévisions 7 jours** détaillées
+- 🌙 **Mode jour/nuit** avec textures dynamiques
+- 📱 **Interface responsive** (mobile & desktop)
+- 🔍 **Recherche de villes** avec géocodage
+- ⚡ **Animations fluides** avec Framer Motion
+
+## 🚀 Technologies utilisées
+
+- **Frontend :** Next.js 15, React 19, TypeScript
+- **3D :** react-globe.gl, Three.js
+- **Styling :** Tailwind CSS, Framer Motion
+- **Icons :** Lucide React
+- **APIs :** Open-Meteo (météo), OpenStreetMap Nominatim (géocodage)
+- **Déploiement :** Vercel
+- **Analytics :** Vercel Analytics
+
+## 🛠️ Installation
+
+```bash
+# Cloner le repository
+git clone https://github.com/JohanL-78/MeteoExplorer.git
+cd threeglobe
+
+# Installer les dépendances
+npm install
+
+# Lancer en développement
+npm run dev
+```
+
+Ouvrir [http://localhost:3000](http://localhost:3000) dans votre navigateur.
+
+## 📦 Scripts disponibles
+
+```bash
+npm run dev      # Développement
+npm run build    # Build de production
+npm run start    # Démarrer en production
+npm run lint     # Linter ESLint
+```
+
+## 🎯 Utilisation
+
+1. **Navigation :** Cliquez et faites glisser pour explorer le globe
+2. **Météo :** Cliquez sur n'importe quel point pour obtenir les données météo
+3. **Recherche :** Utilisez la barre de recherche pour trouver une ville
+4. **Mode nuit :** Basculez entre les textures jour/nuit
+5. **Mobile :** Menu adaptatif avec vue étendue des détails météo
+
+## 🌐 APIs utilisées
+
+- **[Open-Meteo](https://open-meteo.com/)** - Données météorologiques gratuites
+- **[OpenStreetMap Nominatim](https://nominatim.org/)** - Service de géocodage
+
+## 🎨 Fonctionnalités techniques
+
+- **Lazy Loading :** Chargement différé du composant 3D pour optimiser les performances
+- **Responsive Design :** Interface adaptée à tous les écrans
+- **Gestion d'erreurs :** Fallbacks pour les zones sans données (océans, déserts)
+
+
+
+## 📄 Licence
+
+Ce projet est sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de détails.
+
+## 🙏 Remerciements
+
+- **[Vasturiano](https://github.com/vasturiano)** - Créateur de globe.gl et react-globe.gl
+- **[Open-Meteo](https://open-meteo.com/)** - API météorologique gratuite
+- **[OpenStreetMap](https://www.openstreetmap.org/)** - Données géographiques ouvertes
+- **[Three.js Community](https://threejs.org/)** - Écosystème de visualisation 3D
+
+## 👨‍💻 Auteur
+
+**Johan Lorck**
+GitHub: [@johanlorck](https://github.com/johanlorck)
+
+---
+
+⭐ Si ce projet vous plaît, n'hésitez pas à lui donner une étoile !
+
+================================================================================
+
+=== FIN DU FICHIER ===
+
+Total des fichiers inclus: 9 fichiers
+- Configuration: package.json, tsconfig.json, next.config.ts, next-env.d.ts
+- Application: app/layout.tsx, app/page.tsx, app/globals.css
+- Composants: app/components/Navbar.tsx, app/components/Globe.tsx, app/components/About.tsx
+- Documentation: README.md
+
+Instructions pour utiliser ce code dans un autre projet:
+1. Créer un nouveau projet Next.js: npx create-next-app@latest nom-du-projet --typescript --tailwind --app
+2. Remplacer les fichiers existants par le contenu de ce fichier
+3. Installer les dépendances avec: npm install
+4. Lancer le projet avec: npm run dev
+
+Note: Les textures pour le mode nuit doivent être ajoutées dans le dossier public/textures/
