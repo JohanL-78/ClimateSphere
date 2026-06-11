@@ -217,16 +217,6 @@ export default function LandingPage({ year, month, locale = 'en' }) {
             }}>
               {t.landing.primaryCta}
             </Link>
-            <Link href="https://github.com/JohanL-78/nasa-gistemp-viewer" target="_blank" rel="noopener noreferrer" style={{
-              display: 'inline-flex', alignItems: 'center', gap: '8px',
-              borderRadius: '999px', border: '1px solid rgba(246,241,232,0.08)',
-              background: 'rgba(246,241,232,0.025)', padding: '14px 28px',
-              fontSize: '0.95rem', fontWeight: 500, color: 'rgba(246,241,232,0.6)',
-              textDecoration: 'none', transition: 'all 0.3s',
-            }}>
-              {t.landing.sourceCode}
-              <ArrowUpRight size={16} />
-            </Link>
           </motion.div>
         </div>
       </div>
