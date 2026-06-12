@@ -1,4 +1,5 @@
 import "../globals.css";
+import { Analytics } from '@vercel/analytics/next';
 import { Inter, Inter_Tight, JetBrains_Mono } from 'next/font/google';
 import { notFound } from 'next/navigation';
 import { SUPPORTED_LOCALES, normalizeLocale } from '@/lib/i18n';
@@ -74,6 +75,7 @@ export default async function LocaleLayout({ children, params }) {
         <div className="main-container">
           {children}
         </div>
+        <Analytics />
       </body>
     </html>
   );
