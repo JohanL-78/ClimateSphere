@@ -36,6 +36,37 @@ export default function MainContent({
   const [tableSource, setTableSource] = useState('global');
   const [tableReference, setTableReference] = useState('nasa');
   const mobileGlobeTop = isMobile && sidebarOpen ? 'calc(60px + 40vh)' : (isMobile ? '60px' : '80px');
+  const aboutLinks = {
+    'data.giss.nasa.gov/gistemp': 'https://data.giss.nasa.gov/gistemp/',
+    'johanlorck.fr': 'https://johanlorck.fr',
+    'global-climat.com': 'https://global-climat.com',
+  };
+
+  const renderLinkedText = (text) => {
+    const pattern = /(data\.giss\.nasa\.gov\/gistemp|johanlorck\.fr|global-climat\.com)/g;
+    const parts = text.split(pattern);
+
+    return parts.map((part, index) => {
+      const href = aboutLinks[part];
+      if (!href) return part;
+
+      return (
+        <a
+          key={`${part}-${index}`}
+          href={href}
+          style={{
+            color: 'var(--accent)',
+            textDecoration: 'none',
+            fontWeight: 600
+          }}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {part}
+        </a>
+      );
+    });
+  };
   
   const containerStyle = {
     marginLeft: (isMobile) ? '0px' : (sidebarOpen ? 'var(--sidebar-width)' : '0px'),
@@ -217,10 +248,10 @@ export default function MainContent({
           <div style={{ 
             paddingLeft: isMobile ? '20px' : '30px',
             paddingRight: isMobile ? '20px' : '30px',
-            paddingBottom: isMobile ? '20px' : '30px',
+            paddingBottom: isMobile ? '56px' : '64px',
             paddingTop: isMobile ? '240px' : '90px',
             color: 'var(--foreground)',
-            minHeight: 'calc(100vh - 80px)',
+            height: '100vh',
             overflow: 'auto'
           }}>
             <div style={{
@@ -252,34 +283,36 @@ export default function MainContent({
                 fontSize: isMobile ? '14px' : '15px',
                 color: 'var(--foreground-muted)' 
               }}>
-                <p style={{ 
-                  marginBottom: '20px', 
-                  fontSize: isMobile ? '15px' : '16px',
-                  color: 'var(--foreground)',
-                  fontWeight: '600' 
-                }}>
-                  {t.main.aboutTitle}
-                </p>
-                <p style={{ marginBottom: '15px' }}>
-                  {t.main.aboutDescription}
-                </p>
-                <p style={{ marginBottom: '15px' }}>
-                  {t.main.developedBy} <strong style={{ color: 'var(--foreground)', fontWeight: '700' }}>Johan Lorck</strong>
-                </p>
-                <p>
-                  <a 
-                    href="https://github.com/JohanL-78/nasa-gistemp-viewer"
-                    style={{ 
-                      color: 'var(--accent)', 
-                      textDecoration: 'none',
-                      fontWeight: '500'
+                {t.main.aboutSections.map((section, index) => (
+                  <section
+                    key={section.title}
+                    style={{
+                      marginTop: index === 0 ? 0 : isMobile ? '24px' : '30px',
+                      maxWidth: '880px'
                     }}
-                    target="_blank"
-                    rel="noopener noreferrer"
                   >
-                    {t.main.viewSource}
-                  </a>
-                </p>
+                    <h3 style={{
+                      margin: '0 0 12px',
+                      fontSize: index === 0 ? (isMobile ? '18px' : '22px') : (isMobile ? '15px' : '17px'),
+                      color: 'var(--foreground)',
+                      fontWeight: index === 0 ? 800 : 700,
+                      letterSpacing: 0
+                    }}>
+                      {section.title}
+                    </h3>
+                    {section.paragraphs.map((paragraph) => (
+                      <p
+                        key={paragraph}
+                        style={{
+                          margin: '0 0 14px',
+                          color: index === 0 ? 'var(--foreground-soft)' : 'var(--foreground-muted)'
+                        }}
+                      >
+                        {renderLinkedText(paragraph)}
+                      </p>
+                    ))}
+                  </section>
+                ))}
               </div>
             </div>
           </div>
