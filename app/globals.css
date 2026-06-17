@@ -319,11 +319,12 @@ input[type="text"] {
 .landing-globe-desktop {
   position: absolute;
   right: 1vw;
-  top: 6vh;
+  top: 10vh;
   z-index: 1;
   width: 52vw;
   height: 76vh;
   overflow: visible;
+  opacity: 0.88;
   
 }
 

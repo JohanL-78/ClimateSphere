@@ -6,7 +6,7 @@ import * as THREE from 'three';
 
 extend({
   SphereGeometry: THREE.SphereGeometry,
-  MeshBasicMaterial: THREE.MeshBasicMaterial,
+  MeshStandardMaterial: THREE.MeshStandardMaterial,
 });
 
 THREE.Cache.enabled = true;
@@ -17,7 +17,7 @@ const Globe = () => {
   const [texture, setTexture] = useState(null);
 
   useFrame(() => {
-    if (groupRef.current) groupRef.current.rotation.y += 0.0012;
+    if (groupRef.current) groupRef.current.rotation.y += 0.0017;
   });
 
   useEffect(() => {
@@ -50,13 +50,13 @@ const Globe = () => {
     <group ref={groupRef} rotation-x={0.2}>
       <mesh ref={baseMeshRef} rotation-x={0.2}>
         <sphereGeometry args={[1, 64, 32]} />
-        <meshBasicMaterial map={texture} toneMapped={false} />
+        <meshStandardMaterial map={texture} toneMapped={false} roughness={0.95} metalness={0.13} />
       </mesh>
     </group>
   );
 };
 
-const Stars = ({ count = 1500 }) => {
+const Stars = ({ count = 5500 }) => {
   const positions = useMemo(() => {
     const pos = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) {
@@ -75,7 +75,7 @@ const Stars = ({ count = 1500 }) => {
       <bufferGeometry>
         <bufferAttribute attach="attributes-position" array={positions} count={count} itemSize={3} />
       </bufferGeometry>
-      <pointsMaterial size={0.3} color="#f6f1e8" transparent opacity={0.6} sizeAttenuation depthWrite={false} />
+      <pointsMaterial size={0.3} color="#f6f1e8" transparent opacity={0.7} sizeAttenuation depthWrite={false} />
     </points>
   );
 };
@@ -99,8 +99,8 @@ export default function ShowcaseGlobe() {
       >
         <Suspense fallback={null}>
           <Stars />
-          <hemisphereLight skyColor={0xffffff} groundColor={0x888888} intensity={1.5} />
-          <directionalLight position={[0, -3, 0]} intensity={0.5} color={0xffffff} />
+          <hemisphereLight skyColor={0xffffff} groundColor={0x888888} intensity={5.2} />
+          <directionalLight position={[0, -3, 0]} intensity={0.22} color={0xffffff} />
           <Globe />
         </Suspense>
       </Canvas>
