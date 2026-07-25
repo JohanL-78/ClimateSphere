@@ -103,7 +103,7 @@ const TemperatureScale = ({ locale = 'en' }) => {
 };
 
 
-const Globe = ({ year, month, isVisible, autoRotate, onLoad, globeRef, isMobile }) => {
+const Globe = ({ year, month, displayMode, isVisible, autoRotate, onLoad, globeRef, isMobile }) => {
   const groupRef = useRef();
   const baseMeshRef = useRef();
   const [temperatureTexture, setTemperatureTexture] = useState(null);
@@ -118,13 +118,16 @@ const Globe = ({ year, month, isVisible, autoRotate, onLoad, globeRef, isMobile 
 
   useEffect(() => {
   const normalizedMonth = String(month).padStart(2, '0');
-  const key = `${year}_${normalizedMonth}`;
+  const isAnnualMode = displayMode === 'annual';
+  const key = isAnnualMode ? `annual_${year}` : `${year}_${normalizedMonth}`;
   // On ne skip plus parce que baseMeshRef n'est pas encore monté
   if (isLoading || lastLoadedKey === key) return;
   setIsLoading(true);
 
   const loader = new THREE.TextureLoader();
-  const url = `/textures/gistemp_${key}.png`;
+  const url = isAnnualMode
+    ? `/textures/textures_annual/gistemp_${year}.png`
+    : `/textures/gistemp_${key}.png`;
 
   // success
   loader.load(
@@ -189,11 +192,11 @@ const Globe = ({ year, month, isVisible, autoRotate, onLoad, globeRef, isMobile 
   );
 
   if (onLoad && lastLoadedKey !== key) {
-    getTemperatureDataAction(year, normalizedMonth)
+    getTemperatureDataAction(year, normalizedMonth, displayMode)
       .then(res => onLoad(res ?? {}))
       .catch(() => setIsLoading(false));
   }
-}, [year, month, onLoad, lastLoadedKey, isLoading, instanceId]);
+}, [year, month, displayMode, onLoad, lastLoadedKey, isLoading, instanceId]);
 
 
   useEffect(() => {
@@ -285,25 +288,29 @@ export default function CanvasGlobe({ availableDates, timeline = [], controls, o
   // Utiliser les contrôles externes ou les valeurs par défaut
   const year = controls?.year || availableDates.current_year;
   const month = controls?.month || availableDates.current_month;
-  const currentFrameIndex = timeline.findIndex(frame =>
-    String(frame.year) === String(year) && frame.month === String(month).padStart(2, '0')
-  );
+  const displayMode = controls?.displayMode || 'monthly';
+  const isAnnualMode = displayMode === 'annual';
+  const currentFrameIndex = isAnnualMode
+    ? timeline.findIndex(frame => String(frame.year) === String(year))
+    : -1;
   const timelineProgress = timeline.length > 1 && currentFrameIndex >= 0
     ? (currentFrameIndex / (timeline.length - 1)) * 100
     : 0;
   const firstTimelineFrame = timeline[0];
-  const showTimelineHud = controls?.isPlayingTimeline || currentFrameIndex >= 0;
+  const showTimelineHud = isAnnualMode && (controls?.isPlayingTimeline || currentFrameIndex >= 0);
 
   useEffect(() => {
     if (currentFrameIndex < 0 || timeline.length === 0) return;
+
+    if (!isAnnualMode) return;
 
     timeline
       .slice(currentFrameIndex + 1, currentFrameIndex + 7)
       .forEach(frame => {
         const img = new window.Image();
-        img.src = `/textures/gistemp_${frame.year}_${frame.month}.png`;
+        img.src = `/textures/textures_annual/gistemp_${frame.year}.png`;
       });
-  }, [currentFrameIndex, timeline]);
+  }, [currentFrameIndex, isAnnualMode, timeline]);
 
   const handleTempsLoad = (newTemps) => {
     if (onControlsChange) {
@@ -444,7 +451,7 @@ export default function CanvasGlobe({ availableDates, timeline = [], controls, o
               fontWeight: 800,
               lineHeight: 1
             }}>
-              {String(month).padStart(2, '0')}/{year}
+              {year}
             </div>
             {controls?.isPlayingTimeline && (
               <motion.div
@@ -483,7 +490,7 @@ export default function CanvasGlobe({ availableDates, timeline = [], controls, o
             color: 'rgba(246, 241, 232, 0.55)',
             fontSize: isMobile ? '9px' : '10px'
           }}>
-            <span>{firstTimelineFrame ? `${firstTimelineFrame.month}/${firstTimelineFrame.year}` : '--'}</span>
+            <span>{firstTimelineFrame ? firstTimelineFrame.year : '--'}</span>
             <span>{currentFrameIndex >= 0 ? `${currentFrameIndex + 1}/${timeline.length}` : timeline.length}</span>
           </div>
         </div>
@@ -503,6 +510,7 @@ export default function CanvasGlobe({ availableDates, timeline = [], controls, o
             <Globe 
               year={year} 
               month={month} 
+              displayMode={displayMode}
               isVisible={true} 
               autoRotate={autoRotate} 
               onLoad={handleTempsLoad} 

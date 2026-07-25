@@ -14,23 +14,33 @@ import { getTranslations } from '@/lib/i18n';
  * @param {number} year - Année des données
  * @param {number} month - Mois des données
  */
-export default function DetailModal({ isOpen, onClose, data, type, year, month, locale = 'en' }) {
+export default function DetailModal({ isOpen, onClose, data, type, year, month, displayMode = 'monthly', locale = 'en' }) {
   const isMobile = useIsMobile();
   const t = getTranslations(locale);
   
   if (!isOpen) return null;
+
+  const formatRank = (rank) => {
+    if (!rank?.rank || !rank?.total) return null;
+    return `#${rank.rank}/${rank.total}`;
+  };
   
   const getTypeInfo = () => {
     switch (type) {
-      case 'global': return { title: 'Global', value: data?.global, color: 'var(--accent-soft)' };
-      case 'north': return { title: t.modal.northernHemisphere, value: data?.north, color: '#D4A95F' };
-      case 'south': return { title: t.modal.southernHemisphere, value: data?.south, color: '#C56F4B' };
+      case 'global': return { title: 'Global', value: data?.global, ranks: data?.ranks?.global, color: 'var(--accent-soft)' };
+      case 'north': return { title: t.modal.northernHemisphere, value: data?.north, ranks: data?.ranks?.north, color: '#D4A95F' };
+      case 'south': return { title: t.modal.southernHemisphere, value: data?.south, ranks: data?.ranks?.south, color: '#C56F4B' };
       case 'oni': return { title: 'ONI', value: data?.oni, color: 'var(--accent)' };
       default: return { title: '', value: null, color: 'var(--foreground)' };
     }
   };
   
   const typeInfo = getTypeInfo();
+  const sameMonthRank = formatRank(typeInfo.ranks?.sameMonth);
+  const absoluteRank = formatRank(typeInfo.ranks?.absolute);
+  const annualRank = formatRank(typeInfo.ranks?.annual);
+  const hasRanks = sameMonthRank || absoluteRank || annualRank;
+  const dateLabel = displayMode === 'annual' ? year : `${month}/${year}`;
   
   return (
     <motion.div
@@ -106,7 +116,7 @@ export default function DetailModal({ isOpen, onClose, data, type, year, month, 
           marginBottom: '20px',
           fontSize: isMobile ? '14px' : '16px'
         }}>
-          {month}/{year}
+          {dateLabel}
         </p>
         
         <div style={{
@@ -118,6 +128,82 @@ export default function DetailModal({ isOpen, onClose, data, type, year, month, 
         }}>
           {typeInfo.value !== null ? `${typeInfo.value?.toFixed(2)}°C` : 'N/A'}
         </div>
+
+        {hasRanks && (
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+            gap: isMobile ? '8px' : '10px',
+            margin: '0 0 18px',
+            padding: '12px',
+            borderRadius: '8px',
+            border: '1px solid rgba(246, 241, 232, 0.12)',
+            background: 'rgba(246, 241, 232, 0.035)'
+          }}>
+            {annualRank && (
+              <div>
+                <div style={{
+                  color: 'var(--foreground-muted)',
+                  fontSize: isMobile ? '11px' : '12px',
+                  fontWeight: '600',
+                  marginBottom: '4px'
+                }}>
+                  {t.globeControls.rankAnnual}
+                </div>
+                <div style={{
+                  color: typeInfo.color,
+                  fontSize: isMobile ? '16px' : '18px',
+                  fontWeight: '700',
+                  fontVariantNumeric: 'tabular-nums'
+                }}>
+                  {annualRank}
+                </div>
+              </div>
+            )}
+
+            {sameMonthRank && (
+              <div>
+                <div style={{
+                  color: 'var(--foreground-muted)',
+                  fontSize: isMobile ? '11px' : '12px',
+                  fontWeight: '600',
+                  marginBottom: '4px'
+                }}>
+                  {t.globeControls.rankSameMonth}
+                </div>
+                <div style={{
+                  color: typeInfo.color,
+                  fontSize: isMobile ? '16px' : '18px',
+                  fontWeight: '700',
+                  fontVariantNumeric: 'tabular-nums'
+                }}>
+                  {sameMonthRank}
+                </div>
+              </div>
+            )}
+
+            {absoluteRank && (
+              <div>
+                <div style={{
+                  color: 'var(--foreground-muted)',
+                  fontSize: isMobile ? '11px' : '12px',
+                  fontWeight: '600',
+                  marginBottom: '4px'
+                }}>
+                  {t.globeControls.rankAbsolute}
+                </div>
+                <div style={{
+                  color: typeInfo.color,
+                  fontSize: isMobile ? '16px' : '18px',
+                  fontWeight: '700',
+                  fontVariantNumeric: 'tabular-nums'
+                }}>
+                  {absoluteRank}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
         
         <p style={{ 
           color: 'var(--foreground-muted)', 

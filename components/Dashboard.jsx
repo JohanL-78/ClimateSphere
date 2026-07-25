@@ -11,16 +11,15 @@ export default function Dashboard({ availableDates, tableData, locale = 'en' }) 
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [activeTab, setActiveTab] = useState('globe');
   const [chartOpen, setChartOpen] = useState(false);
-  const timeline = useMemo(() => {
-    const textureMonthsByYear = availableDates?.textureMonthsByYear || {};
-
-    return Object.entries(textureMonthsByYear)
-      .flatMap(([year, months]) => (months || []).map(month => ({ year, month })))
-      .sort((a, b) => Number(a.year) - Number(b.year) || Number(a.month) - Number(b.month));
-  }, [availableDates]);
+  const annualTimeline = useMemo(() => (
+    (availableDates?.annualYears || [])
+      .map(year => ({ year: String(year) }))
+      .sort((a, b) => Number(a.year) - Number(b.year))
+  ), [availableDates]);
   
   // États pour les contrôles du globe
   const [globeControls, setGlobeControls] = useState({
+    displayMode: 'monthly',
     year: availableDates.current_year,
     month: availableDates.current_month,
     temps: {},
@@ -43,6 +42,29 @@ export default function Dashboard({ availableDates, tableData, locale = 'en' }) 
     }
     
     switch (action.type) {
+      case 'setDisplayMode':
+        setGlobeControls(prev => {
+          const nextMode = action.payload;
+          if (nextMode === 'annual') {
+            return {
+              ...prev,
+              displayMode: 'annual',
+              year: availableDates.current_annual_year || prev.year,
+              isLoadingTemps: true,
+              isPlayingTimeline: false
+            };
+          }
+
+          return {
+            ...prev,
+            displayMode: 'monthly',
+            year: availableDates.current_year || prev.year,
+            month: availableDates.current_month || prev.month,
+            isLoadingTemps: true,
+            isPlayingTimeline: false
+          };
+        });
+        break;
       case 'setYear':
         setGlobeControls(prev => ({ ...prev, year: action.payload, isLoadingTemps: true, isPlayingTimeline: false }));
         break;
@@ -51,14 +73,15 @@ export default function Dashboard({ availableDates, tableData, locale = 'en' }) 
         break;
       case 'playTimeline':
         setGlobeControls(prev => {
-          const firstFrame = timeline[0];
+          if (prev.displayMode !== 'annual') return { ...prev, isPlayingTimeline: false };
+
+          const firstFrame = annualTimeline[0];
           if (!firstFrame) return { ...prev, isPlayingTimeline: false };
 
           const shouldRestart = action.payload === 'from-start';
           return {
             ...prev,
             year: shouldRestart ? firstFrame.year : prev.year,
-            month: shouldRestart ? firstFrame.month : prev.month,
             isLoadingTemps: false,
             isPlayingTimeline: true
           };
@@ -69,13 +92,14 @@ export default function Dashboard({ availableDates, tableData, locale = 'en' }) 
         break;
       case 'resetTimeline':
         setGlobeControls(prev => {
-          const firstFrame = timeline[0];
+          if (prev.displayMode !== 'annual') return { ...prev, isPlayingTimeline: false };
+
+          const firstFrame = annualTimeline[0];
           if (!firstFrame) return { ...prev, isPlayingTimeline: false };
 
           return {
             ...prev,
             year: firstFrame.year,
-            month: firstFrame.month,
             isLoadingTemps: false,
             isPlayingTimeline: false
           };
@@ -99,15 +123,13 @@ export default function Dashboard({ availableDates, tableData, locale = 'en' }) 
   };
 
   useEffect(() => {
-    if (!globeControls.isPlayingTimeline || timeline.length === 0) return;
+    if (globeControls.displayMode !== 'annual' || !globeControls.isPlayingTimeline || annualTimeline.length === 0) return;
 
     const interval = window.setInterval(() => {
       setGlobeControls(prev => {
-        const currentIndex = timeline.findIndex(frame =>
-          String(frame.year) === String(prev.year) && frame.month === String(prev.month).padStart(2, '0')
-        );
+        const currentIndex = annualTimeline.findIndex(frame => String(frame.year) === String(prev.year));
 
-        const nextFrame = timeline[currentIndex + 1];
+        const nextFrame = annualTimeline[currentIndex + 1];
         if (!nextFrame) {
           return { ...prev, isPlayingTimeline: false };
         }
@@ -115,14 +137,13 @@ export default function Dashboard({ availableDates, tableData, locale = 'en' }) 
         return {
           ...prev,
           year: nextFrame.year,
-          month: nextFrame.month,
           isLoadingTemps: false
         };
       });
     }, globeControls.timelineSpeed);
 
     return () => window.clearInterval(interval);
-  }, [globeControls.isPlayingTimeline, globeControls.timelineSpeed, timeline]);
+  }, [globeControls.displayMode, globeControls.isPlayingTimeline, globeControls.timelineSpeed, annualTimeline]);
   
   return (
     <div style={{ height: '100vh', overflow: 'hidden' }}>
@@ -138,7 +159,7 @@ export default function Dashboard({ availableDates, tableData, locale = 'en' }) 
         activeTab={activeTab}
         onTabChange={setActiveTab}
         availableDates={availableDates}
-        timeline={timeline}
+        timeline={annualTimeline}
         globeControls={globeControls}
         onGlobeControlsChange={handleGlobeControlsChange}
       />
@@ -148,7 +169,7 @@ export default function Dashboard({ availableDates, tableData, locale = 'en' }) 
         activeTab={activeTab}
         sidebarOpen={sidebarOpen}
         availableDates={availableDates}
-        timeline={timeline}
+        timeline={annualTimeline}
         tableData={tableData}
         onOpenChart={handleOpenChart}
         globeControls={globeControls}
@@ -174,6 +195,7 @@ export default function Dashboard({ availableDates, tableData, locale = 'en' }) 
           type={globeControls.modalType}
           year={globeControls.year}
           month={globeControls.month}
+          displayMode={globeControls.displayMode}
         />
       )}
     </div>
