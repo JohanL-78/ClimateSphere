@@ -11,18 +11,25 @@ extend({
 
 THREE.Cache.enabled = true;
 
+const GLOBE_TILT_DEGREES = 38;
+const START_LONGITUDE_DEGREES = -175;
+const GLOBE_TILT = THREE.MathUtils.degToRad(GLOBE_TILT_DEGREES);
+const START_LONGITUDE = THREE.MathUtils.degToRad(START_LONGITUDE_DEGREES);
+
 const Globe = () => {
-  const groupRef = useRef();
+  const spinRef = useRef();
   const baseMeshRef = useRef();
   const [texture, setTexture] = useState(null);
 
   useFrame(() => {
-    if (groupRef.current) groupRef.current.rotation.y += 0.0017;
+    if (spinRef.current) spinRef.current.rotation.y += 0.0017;
   });
 
   useEffect(() => {
     const loader = new THREE.TextureLoader();
-    loader.load('https://cdn.jsdelivr.net/npm/three-globe/example/img/earth-dark.jpg', (tex) => {
+    let loadedTexture;
+
+    loader.load('/textures/totaldark.jpg', (tex) => {
       tex.colorSpace = THREE.SRGBColorSpace;
       tex.magFilter = THREE.LinearFilter;
       tex.minFilter = THREE.LinearFilter;
@@ -31,6 +38,7 @@ const Globe = () => {
       tex.wrapT = THREE.ClampToEdgeWrapping;
       tex.flipY = true;
       tex.needsUpdate = true;
+      loadedTexture = tex;
       setTexture(tex);
 
       if (baseMeshRef.current) {
@@ -42,16 +50,20 @@ const Globe = () => {
     });
 
     return () => {
-      texture?.dispose();
+      loadedTexture?.dispose();
     };
   }, []);
 
   return (
-    <group ref={groupRef} rotation-x={0.2}>
-      <mesh ref={baseMeshRef} rotation-x={0.2}>
-        <sphereGeometry args={[1, 64, 32]} />
-        <meshStandardMaterial map={texture} toneMapped={false} roughness={0.95} metalness={0.13} />
-      </mesh>
+    <group rotation-x={GLOBE_TILT}>
+      <group ref={spinRef} rotation-y={START_LONGITUDE}>
+        {texture && (
+          <mesh ref={baseMeshRef}>
+            <sphereGeometry args={[1, 64, 32]} />
+            <meshStandardMaterial map={texture} toneMapped={false} color="#5fe4ed" roughness={0.95} metalness={0.13} />
+          </mesh>
+        )}
+      </group>
     </group>
   );
 };

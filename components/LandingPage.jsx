@@ -85,26 +85,6 @@ export default function LandingPage({ year, month, locale = 'en' }) {
 
       {/* ─── Globe (desktop) — absolute right like test25graphite ─── */}
       <div className="landing-globe-desktop">
-        {/* Decorative circles */}
-        <div style={{
-          position: 'absolute', left: '36%', top: '25%',
-          width: '7rem', height: '7rem', borderRadius: '50%',
-          border: '1px solid rgba(246,241,232,0.18)',
-          pointerEvents: 'none',
-        }} />
-        <div style={{
-          position: 'absolute', left: '31%', top: '20%',
-          width: '11rem', height: '11rem', borderRadius: '50%',
-          border: '1px solid rgba(47,111,115,0.35)',
-          pointerEvents: 'none',
-        }} />
-        {/* Decorative line */}
-        <div style={{
-          position: 'absolute', left: '20%', top: '43%',
-          width: '13rem', height: '1px',
-          background: 'linear-gradient(to right, transparent, rgba(246,241,232,0.4), rgba(47,111,115,0.45))',
-          pointerEvents: 'none',
-        }} />
         {/* Globe */}
         <div style={{ position: 'absolute', inset: 0, opacity: 0.95 }}>
           <LazyShowcaseGlobe year={year} month={month} />
