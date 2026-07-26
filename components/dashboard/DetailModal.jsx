@@ -27,9 +27,9 @@ export default function DetailModal({ isOpen, onClose, data, type, year, month, 
   
   const getTypeInfo = () => {
     switch (type) {
-      case 'global': return { title: 'Global', value: data?.global, ranks: data?.ranks?.global, color: 'var(--accent-soft)' };
-      case 'north': return { title: t.modal.northernHemisphere, value: data?.north, ranks: data?.ranks?.north, color: '#D4A95F' };
-      case 'south': return { title: t.modal.southernHemisphere, value: data?.south, ranks: data?.ranks?.south, color: '#C56F4B' };
+      case 'global': return { title: 'Global', value: data?.global, preindustrialValue: data?.preindustrial?.global, ranks: data?.ranks?.global, color: 'var(--accent-soft)' };
+      case 'north': return { title: t.modal.northernHemisphere, value: data?.north, preindustrialValue: data?.preindustrial?.north, ranks: data?.ranks?.north, color: '#D4A95F' };
+      case 'south': return { title: t.modal.southernHemisphere, value: data?.south, preindustrialValue: data?.preindustrial?.south, ranks: data?.ranks?.south, color: '#C56F4B' };
       case 'oni': return { title: 'ONI', value: data?.oni, color: 'var(--accent)' };
       default: return { title: '', value: null, color: 'var(--foreground)' };
     }
@@ -128,6 +128,46 @@ export default function DetailModal({ isOpen, onClose, data, type, year, month, 
         }}>
           {typeInfo.value !== null ? `${typeInfo.value?.toFixed(2)}°C` : 'N/A'}
         </div>
+
+        {typeInfo.value !== null && typeInfo.value !== undefined && (
+          <div style={{
+            color: 'var(--foreground-muted)',
+            fontSize: isMobile ? '11px' : '12px',
+            fontWeight: '600',
+            marginBottom: typeInfo.preindustrialValue !== null && typeInfo.preindustrialValue !== undefined ? '12px' : '18px',
+            textTransform: 'uppercase',
+            letterSpacing: '0.04em'
+          }}>
+            {t.globeControls.nasaReference}
+          </div>
+        )}
+
+        {typeInfo.preindustrialValue !== null && typeInfo.preindustrialValue !== undefined && (
+          <div style={{
+            margin: '0 0 18px',
+            padding: '10px 12px',
+            borderRadius: '8px',
+            border: '1px solid rgba(246, 241, 232, 0.12)',
+            background: 'rgba(246, 241, 232, 0.035)'
+          }}>
+            <div style={{
+              color: 'var(--foreground-muted)',
+              fontSize: isMobile ? '11px' : '12px',
+              fontWeight: '600',
+              marginBottom: '4px'
+            }}>
+              {t.globeControls.preindustrialReference}
+            </div>
+            <div style={{
+              color: typeInfo.color,
+              fontSize: isMobile ? '18px' : '20px',
+              fontWeight: '700',
+              fontVariantNumeric: 'tabular-nums'
+            }}>
+              {typeInfo.preindustrialValue.toFixed(2)}°C
+            </div>
+          </div>
+        )}
 
         {hasRanks && (
           <div style={{

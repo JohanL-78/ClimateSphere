@@ -56,7 +56,7 @@ export default function GlobeControls({ controls, availableDates, timeline = [],
     return `#${rank.rank}/${rank.total}`;
   };
 
-  const DataCard = ({ icon: Icon, label, value, ranks, color, onClick, isLoading }) => {
+  const DataCard = ({ icon: Icon, label, value, preindustrialValue, ranks, color, onClick, isLoading }) => {
     const sameMonthRank = formatRank(ranks?.sameMonth);
     const absoluteRank = formatRank(ranks?.absolute);
     const annualRank = formatRank(ranks?.annual);
@@ -84,7 +84,7 @@ export default function GlobeControls({ controls, availableDates, timeline = [],
           cursor: isLoading ? 'default' : 'pointer',
           transition: 'all 0.4s ease',
           opacity: isLoading ? 0.82 : 1,
-          minHeight: mobile ? '76px' : isTablet ? '86px' : '94px',
+          minHeight: mobile ? '94px' : isTablet ? '104px' : '112px',
           position: 'relative',
           boxShadow: `0 4px 15px rgba(0, 0, 0, 0.1), 0 0 10px ${color}10`,
           willChange: 'transform, box-shadow',
@@ -160,6 +160,33 @@ export default function GlobeControls({ controls, availableDates, timeline = [],
           }}>
             {value !== null && value !== undefined ? `${value?.toFixed(2)}°C` : isLoading ? '...' : 'N/A'}
           </div>
+
+          {value !== null && value !== undefined && !isLoading && (
+            <div style={{
+              color: 'rgba(246, 241, 232, 0.52)',
+              fontSize: mobile ? '8px' : '9px',
+              fontWeight: '600',
+              lineHeight: mobile ? '11px' : '12px',
+              marginTop: '2px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.03em'
+            }}>
+              {t.globeControls.nasaReference}
+            </div>
+          )}
+
+          {preindustrialValue !== null && preindustrialValue !== undefined && !isLoading && (
+            <div style={{
+              color: 'rgba(246, 241, 232, 0.76)',
+              fontSize: mobile ? '9px' : '10px',
+              fontWeight: '700',
+              lineHeight: mobile ? '12px' : '14px',
+              marginTop: mobile ? '3px' : '5px',
+              fontVariantNumeric: 'tabular-nums'
+            }}>
+              {t.globeControls.preindustrialReference}: {preindustrialValue.toFixed(2)}°C
+            </div>
+          )}
 
           {hasRanks && !isLoading && (
             <div style={{
@@ -530,6 +557,7 @@ export default function GlobeControls({ controls, availableDates, timeline = [],
           icon={Globe} 
           label={t.globeControls.global}
           value={controls.temps?.global} 
+          preindustrialValue={controls.temps?.preindustrial?.global}
           ranks={controls.temps?.ranks?.global}
           color="#b87b6b"
           onClick={() => handleCardClick('global')}
@@ -540,6 +568,7 @@ export default function GlobeControls({ controls, availableDates, timeline = [],
           icon={Snowflake} 
           label={t.globeControls.northShort}
           value={controls.temps?.north} 
+          preindustrialValue={controls.temps?.preindustrial?.north}
           ranks={controls.temps?.ranks?.north}
           color="#2f6f73"
           onClick={() => handleCardClick('north')}
@@ -550,6 +579,7 @@ export default function GlobeControls({ controls, availableDates, timeline = [],
           icon={Mountain} 
           label={t.globeControls.southShort}
           value={controls.temps?.south} 
+          preindustrialValue={controls.temps?.preindustrial?.south}
           ranks={controls.temps?.ranks?.south}
           color="#b8b2a8"
           onClick={() => handleCardClick('south')}
