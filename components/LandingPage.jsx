@@ -25,12 +25,6 @@ export default function LandingPage({ year, month, locale = 'en' }) {
           position: 'absolute', inset: 0,
           background: 'linear-gradient(90deg, rgba(8,12,13,0.72) 0%, rgba(11,15,16,0.42) 28%, transparent 100%)',
         }} />
-        <div style={{
-          position: 'absolute', inset: 0,
-          backgroundImage: 'linear-gradient(rgba(246,241,232,0.028) 1px, transparent 1px), linear-gradient(90deg, rgba(246,241,232,0.022) 1px, transparent 1px)',
-          backgroundSize: '72px 72px',
-          opacity: 0.55,
-        }} />
         <div style={{ position: 'absolute', left: 0, right: 0, top: 0, height: '160px', background: 'linear-gradient(to bottom, #11110F, transparent)' }} />
         <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, height: '192px', background: 'linear-gradient(to top, #11110F, transparent)' }} />
       </div>
